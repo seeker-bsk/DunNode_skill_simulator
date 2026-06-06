@@ -1,6 +1,16 @@
-reports/
-core/
+# 환경 변수
+.env
 
-/CLAUDE.md
-/MILESTONE.md
-/PROJECT_SPEC.md
+# Node.js
+node_modules/
+
+# C 빌드 산출물
+core/*.o
+core/*.exe
+core/simulator
+
+# 데이터 파이프라인 산출물
+data/
+
+# 개발 참고 자료 (코드 아님)
+reports/
