@@ -1,0 +1,181 @@
+{
+  "skills": [
+    {
+      "skillId": "3c5604bdbb0240b8f130f59ab40509c3",
+      "name": "공참타",
+      "requiredLevel": 1,
+      "type": "active"
+    },
+    {
+      "skillId": "f2fb27162beb0b87a7cb9af7900e95f2",
+      "name": "스매셔",
+      "requiredLevel": 1,
+      "type": "active"
+    },
+    {
+      "skillId": "faf9cd66281078b51be2ee0b0f6c5530",
+      "name": "럭키 스트레이트",
+      "requiredLevel": 5,
+      "type": "active"
+    },
+    {
+      "skillId": "d296043df164385a14cb973c8c7c4d07",
+      "name": "세컨드 어퍼",
+      "requiredLevel": 10,
+      "type": "active"
+    },
+    {
+      "skillId": "ca75c965f20a150f99f54155a37400df",
+      "name": "분노의 움켜쥠",
+      "requiredLevel": 10,
+      "type": "active"
+    },
+    {
+      "skillId": "45442bbbe33540b4deeec29437dae70c",
+      "name": "낙봉추",
+      "requiredLevel": 15,
+      "type": "active"
+    },
+    {
+      "skillId": "de3fea2d65c597f4d55c70a02b97fc79",
+      "name": "더킹 스트레이트",
+      "requiredLevel": 15,
+      "type": "active"
+    },
+    {
+      "skillId": "202edb928046f4fa6dedf6337377efd5",
+      "name": "더킹 어퍼",
+      "requiredLevel": 15,
+      "type": "active"
+    },
+
+    {
+      "skillId": "c61f5a010370101402b05b21916c2071",
+      "name": "더킹 바디블로",
+      "requiredLevel": 20,
+      "type": "active"
+    },
+    {
+      "skillId": "6a1d1f08a6572be420bb3a256c44c015",
+      "name": "디바인 크러시",
+      "requiredLevel": 20,
+      "type": "active"
+    },
+    {
+      "skillId": "b89c9ab317bc0a443f6497b7cca2f6a8",
+      "name": "승천진",
+      "requiredLevel": 20,
+      "type": "active"
+    },
+
+    {
+      "skillId": "3829c15bf5f520c13998a3479ba0ce7b",
+      "name": "고저스 컴비네이션",
+      "requiredLevel": 25,
+      "type": "active"
+    },
+
+    {
+      "skillId": "a2d943797daca862a6f321aca6ac9bfa",
+      "name": "사이드 와인드",
+      "requiredLevel": 25,
+      "type": "active"
+    },
+    {
+      "skillId": "a6c8f69107f8c4f5d1a0c7a57d000290",
+      "name": "홀리 카운터",
+      "requiredLevel": 30,
+      "type": "active"
+    },
+    {
+      "skillId": "bb34e8854a93fd250347a1c64119f7ab",
+      "name": "초핑 해머",
+      "requiredLevel": 30,
+      "type": "active"
+    },
+    {
+      "skillId": "27bade584bb42fef68148d3a0b72bace",
+      "name": "섀도우 박서",
+      "requiredLevel": 35,
+      "type": "active"
+    },
+    {
+      "skillId": "c7bf7ccab413009640e65ca6f2f0263a",
+      "name": "머신건 잽",
+      "requiredLevel": 35,
+      "type": "active"
+    },
+    {
+      "skillId": "aa6dd52e1c925d87cdc0ca340056c543",
+      "name": "코크 스크류 블로우",
+      "requiredLevel": 35,
+      "type": "active"
+    },
+    {
+      "skillId": "38612d8f2561edc2eb68d5057a837bfa",
+      "name": "헤븐리 컴비네이션",
+      "requiredLevel": 40,
+      "type": "active"
+    },
+    {
+      "skillId": "717f1e2104fe4b796f800352fa143ecc",
+      "name": "허리케인 롤",
+      "requiredLevel": 45,
+      "type": "active"
+    },
+    {
+      "skillId": "dbf8b30c7057032af0d68fcfa289fdae",
+      "name": "빅뱅 펀치",
+      "requiredLevel": 50,
+      "type": "active"
+    },
+    {
+      "skillId": "e0daa922b19cdc35de879e938361464e",
+      "name": "개틀링 펀치",
+      "requiredLevel": 60,
+      "type": "active"
+    },
+    {
+      "skillId": "0fbb8de70002ad34f046c94c2cb3e863",
+      "name": "데몰리션 펀치",
+      "requiredLevel": 70,
+      "type": "active"
+    },
+    {
+      "skillId": "9bc30e0f6e22b0333762d04acae7d252",
+      "name": "핵 펀치",
+      "requiredLevel": 75,
+      "type": "active"
+    },
+    {
+      "skillId": "087d1068ff506d090710566608a17760",
+      "name": "데스블로우",
+      "requiredLevel": 75,
+      "type": "passive"
+    },
+    {
+      "skillId": "d204ec03a0aed2f20211fb6ccc48d46d",
+      "name": "아토믹 쵸퍼",
+      "requiredLevel": 80,
+      "type": "active"
+    },
+    {
+      "skillId": "0f638da961acf7958ac6070b7aaed013",
+      "name": "신의 분노",
+      "requiredLevel": 85,
+      "type": "active"
+    },
+    {
+      "skillId": "87a918bb22cfc959a16e0bf939bb6c24",
+      "name": "어그레시브 저지먼트",
+      "requiredLevel": 95,
+      "type": "active"
+    },
+    {
+      "skillId": "aa51c4ddf1659092fa9ed612b9837061",
+      "name": "정의 집행 : 레미디오스의 성좌",
+      "requiredLevel": 100,
+      "type": "active"
+    }
+  ]
+}

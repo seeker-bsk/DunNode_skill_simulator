@@ -1,0 +1,650 @@
+[
+  {
+    "name": "공참타",
+    "req": 1,
+    "maxl": 20,
+    "pre": "-",
+    "opt_desc": "띄우는 힘 비율 : {value1}% / 공격력 : {value2}%",
+    "lv1_ct": 2,
+    "lv1_cast": 0,
+    "lv1_opts": {
+      "value1": 131.4,
+      "value2": 175
+    },
+    "lvmax_ct": 2,
+    "lvmax_cast": 0,
+    "lvmax_opts": {
+      "value1": 190.5,
+      "value2": 705
+    },
+    "lv_count": 20
+  },
+  {
+    "name": "스매셔",
+    "req": 1,
+    "maxl": 70,
+    "pre": "-",
+    "opt_desc": "대시 충돌 적 공격력 : {value1}% / 대시 충돌 히트 수 : {value2}회 / 잡은 적 공격력 : {value3}% / 간접 공격력 : {value4}% / 추가 조작 공격력 증가율 : {value5}%",
+    "lv1_ct": 5,
+    "lv1_cast": 0,
+    "lv1_opts": {
+      "value1": 196,
+      "value2": 5,
+      "value3": 3069,
+      "value4": 1538,
+      "value5": 24
+    },
+    "lvmax_ct": 5,
+    "lvmax_cast": 0,
+    "lvmax_opts": {
+      "value1": 1571,
+      "value2": 5,
+      "value3": 24556,
+      "value4": 12300,
+      "value5": 24
+    },
+    "lv_count": 70
+  },
+  {
+    "name": "럭키 스트레이트",
+    "req": 5,
+    "maxl": 70,
+    "pre": "-",
+    "opt_desc": "히트수 : {value1}회 / 1타, 2타 공격력 : {value2}% / 피니시 공격력 : {value3}% / 피니시의 물리/마법 크리티컬 확률 증가 : {value4}%",
+    "lv1_ct": 3,
+    "lv1_cast": 0,
+    "lv1_opts": {
+      "value1": 3,
+      "value2": 941,
+      "value3": 2823,
+      "value4": 20
+    },
+    "lvmax_ct": 3,
+    "lvmax_cast": 0,
+    "lvmax_opts": {
+      "value1": 3,
+      "value2": 7530,
+      "value3": 22580,
+      "value4": 115.2
+    },
+    "lv_count": 70
+  },
+  {
+    "name": "세컨드 어퍼",
+    "req": 10,
+    "maxl": 70,
+    "pre": "-",
+    "opt_desc": "공격력 : {value1}% / 띄우는 힘 비율 : {value2}%",
+    "lv1_ct": 2,
+    "lv1_cast": 0,
+    "lv1_opts": {
+      "value1": 4587,
+      "value2": 100
+    },
+    "lvmax_ct": 2,
+    "lvmax_cast": 0,
+    "lvmax_opts": {
+      "value1": 36696,
+      "value2": 219
+    },
+    "lv_count": 70
+  },
+  {
+    "name": "분노의 움켜쥠",
+    "req": 10,
+    "maxl": 70,
+    "pre": "-",
+    "opt_desc": "뻗을 때 공격력 : {value1}% / 움켜쥘 때 공격력 : {value2}% / 구속 확률 : {value3}% / 구속 지속 시간 : {value4}초 /  / [악마화 상태에서 시전 시] / 공격력 증가율 : {value5}% / 쿨타임 증가율 : {value6}% /  / [범위 정보] / 손 크기 비율 : {value7}%",
+    "lv1_ct": 6,
+    "lv1_cast": 0.3,
+    "lv1_opts": {
+      "value1": 1648,
+      "value2": 3288,
+      "value3": 20,
+      "value4": 2,
+      "value5": 124,
+      "value6": 60,
+      "value7": 100
+    },
+    "lvmax_ct": 6,
+    "lvmax_cast": 0.3,
+    "lvmax_opts": {
+      "value1": 13181,
+      "value2": 26307,
+      "value3": 115.2,
+      "value4": 6.7,
+      "value5": 124,
+      "value6": 60,
+      "value7": 100
+    },
+    "lv_count": 70
+  },
+  {
+    "name": "낙봉추",
+    "req": 15,
+    "maxl": 70,
+    "pre": "-",
+    "opt_desc": "거병 타격 공격력 : {value1}% / 충격파 범위 : {value2}px / 충격파 공격력 : {value3}% /  / 퇴마사 전직 시 충격파 범위 증가율 : {value4}%",
+    "lv1_ct": 6,
+    "lv1_cast": 0,
+    "lv1_opts": {
+      "value1": 1533,
+      "value2": 125,
+      "value3": 6130,
+      "value4": 20
+    },
+    "lvmax_ct": 6,
+    "lvmax_cast": 0,
+    "lvmax_opts": {
+      "value1": 12261,
+      "value2": 304,
+      "value3": 49043,
+      "value4": 20
+    },
+    "lv_count": 70
+  },
+  {
+    "name": "더킹 스트레이트",
+    "req": 15,
+    "maxl": 70,
+    "pre": "-",
+    "opt_desc": "공격력 : {value1}%",
+    "lv1_ct": 3.5,
+    "lv1_cast": 0,
+    "lv1_opts": {
+      "value1": 6670
+    },
+    "lvmax_ct": 3.5,
+    "lvmax_cast": 0,
+    "lvmax_opts": {
+      "value1": 53360
+    },
+    "lv_count": 70
+  },
+  {
+    "name": "더킹 어퍼",
+    "req": 15,
+    "maxl": 70,
+    "pre": "-",
+    "opt_desc": "공격력 : {value1}% / 띄우는 힘 비율 : {value2}%",
+    "lv1_ct": 3.5,
+    "lv1_cast": 0,
+    "lv1_opts": {
+      "value1": 6691,
+      "value2": 80
+    },
+    "lvmax_ct": 3.5,
+    "lvmax_cast": 0,
+    "lvmax_opts": {
+      "value1": 53528,
+      "value2": 80
+    },
+    "lv_count": 70
+  },
+  {
+    "name": "더킹 바디블로",
+    "req": 20,
+    "maxl": 70,
+    "pre": "-",
+    "opt_desc": "공격력 : {value1}% / 기절 확률 : {value2}% / 기절 시간 : {value3}초 / 제압력 (4인 플레이) : <소수1+>초 (<소수1+>초)",
+    "lv1_ct": 3.5,
+    "lv1_cast": 0,
+    "lv1_opts": {
+      "value1": 7621,
+      "value2": 30,
+      "value3": 3.4
+    },
+    "lvmax_ct": 3.5,
+    "lvmax_cast": 0,
+    "lvmax_opts": {
+      "value1": 60968,
+      "value2": 101.4,
+      "value3": 7.44
+    },
+    "lv_count": 70
+  },
+  {
+    "name": "디바인 크러시",
+    "req": 20,
+    "maxl": 70,
+    "pre": "-",
+    "opt_desc": "직접 타격 공격력 : {value1}% / 충격파 공격력 : {value2}% /  / [범위 정보] / 충격파 범위 : {value3}%",
+    "lv1_ct": 5,
+    "lv1_cast": 0,
+    "lv1_opts": {
+      "value1": 927,
+      "value2": 8344,
+      "value3": 100
+    },
+    "lvmax_ct": 5,
+    "lvmax_cast": 0,
+    "lvmax_opts": {
+      "value1": 7417,
+      "value2": 66751,
+      "value3": 100
+    },
+    "lv_count": 70
+  },
+  {
+    "name": "승천진",
+    "req": 20,
+    "maxl": 70,
+    "pre": "-",
+    "opt_desc": "공격력 : {value1}% / 띄우는 힘 비율 : {value2}% /  / [범위 정보] / 공격 범위 : {value3}% / 퇴마사로 전직 시 공격 범위 : {value4}%",
+    "lv1_ct": 5,
+    "lv1_cast": 0.4,
+    "lv1_opts": {
+      "value1": 5669,
+      "value2": 166.6,
+      "value3": 100,
+      "value4": 110
+    },
+    "lvmax_ct": 5,
+    "lvmax_cast": 0.4,
+    "lvmax_opts": {
+      "value1": 45352,
+      "value2": 166.6,
+      "value3": 159,
+      "value4": 175
+    },
+    "lv_count": 70
+  },
+  {
+    "name": "고저스 컴비네이션",
+    "req": 25,
+    "maxl": 70,
+    "pre": "-",
+    "opt_desc": "공격 속도 증가율 : {value1}% / 잽 공격력 : {value2}% / 스트레이트 공격력 : {value3}% / 훅 공격력 : {value4}% / 제압력 (4인 플레이) : <소수1+>초 (<소수1+>초)",
+    "lv1_ct": 7,
+    "lv1_cast": 0,
+    "lv1_opts": {
+      "value1": "-",
+      "value2": 3836,
+      "value3": 4689,
+      "value4": 5684
+    },
+    "lvmax_ct": 7,
+    "lvmax_cast": 0,
+    "lvmax_opts": {
+      "value1": 185,
+      "value2": 30691,
+      "value3": 37512,
+      "value4": 45469
+    },
+    "lv_count": 70
+  },
+  {
+    "name": "사이드 와인드",
+    "req": 25,
+    "maxl": 70,
+    "pre": "-",
+    "opt_desc": "공격력 : {value1}% / 추가타 공격력 : {value2}% / 제압력 (4인 플레이) : <소수1+>초 (<소수1+>초) /  / [범위 정보] / 범위 : {value3}%",
+    "lv1_ct": 4,
+    "lv1_cast": 0,
+    "lv1_opts": {
+      "value1": 7173,
+      "value2": 1791,
+      "value3": "-"
+    },
+    "lvmax_ct": 4,
+    "lvmax_cast": 0,
+    "lvmax_opts": {
+      "value1": 57384,
+      "value2": 14328,
+      "value3": "-"
+    },
+    "lv_count": 70
+  },
+  {
+    "name": "홀리 카운터",
+    "req": 30,
+    "maxl": 11,
+    "pre": "-",
+    "opt_desc": "추가 공격력 : {value1}% / 받는 피해 감소율 : {value2}%",
+    "lv1_ct": 6,
+    "lv1_cast": 0,
+    "lv1_opts": {
+      "value1": 321,
+      "value2": 90
+    },
+    "lvmax_ct": 6,
+    "lvmax_cast": 0,
+    "lvmax_opts": {
+      "value1": 1361,
+      "value2": 90
+    },
+    "lv_count": 11
+  },
+  {
+    "name": "초핑 해머",
+    "req": 30,
+    "maxl": 70,
+    "pre": "-",
+    "opt_desc": "공격력 : {value1}% / 띄우는 힘 : {value2}% / 충격파 공격력 : {value3}% /   / [하나의 정의 습득 시] / 공격력 : {value4}% / 띄우는 힘 : {value5}% / 신성력 폭발 공격력 : {value6}% /  / [범위 정보] / 충격파 범위 : {value7}%",
+    "lv1_ct": 6,
+    "lv1_cast": 0,
+    "lv1_opts": {
+      "value1": 8671,
+      "value2": 87.5,
+      "value3": 5778,
+      "value4": 8671,
+      "value5": 87.5,
+      "value6": 5778,
+      "value7": 121
+    },
+    "lvmax_ct": 6,
+    "lvmax_cast": 0,
+    "lvmax_opts": {
+      "value1": 69367,
+      "value2": 156.5,
+      "value3": 46225,
+      "value4": 69367,
+      "value5": 156.5,
+      "value6": 46225,
+      "value7": 121
+    },
+    "lv_count": 70
+  },
+  {
+    "name": "섀도우 박서",
+    "req": 35,
+    "maxl": 20,
+    "pre": "-",
+    "opt_desc": "지속 시간 : {value1}초 / 공격력 비율 : 타격량의 {value2}%",
+    "lv1_ct": 5,
+    "lv1_cast": 0.5,
+    "lv1_opts": {
+      "value1": "-",
+      "value2": 6.5
+    },
+    "lvmax_ct": 5,
+    "lvmax_cast": 0.5,
+    "lvmax_opts": {
+      "value1": "-",
+      "value2": 35
+    },
+    "lv_count": 20
+  },
+  {
+    "name": "머신건 잽",
+    "req": 35,
+    "maxl": 70,
+    "pre": "-",
+    "opt_desc": "연타 공격력 : {value1}% / 피니시 공격력 : {value2}% / 추가타 공격력 : {value3}% / 연타 타격 수 : {value4}회",
+    "lv1_ct": 10,
+    "lv1_cast": 0,
+    "lv1_opts": {
+      "value1": 1033,
+      "value2": 4614,
+      "value3": 3002,
+      "value4": 15
+    },
+    "lvmax_ct": 10,
+    "lvmax_cast": 0,
+    "lvmax_opts": {
+      "value1": 8262,
+      "value2": 36916,
+      "value3": 24013,
+      "value4": 15
+    },
+    "lv_count": 70
+  },
+  {
+    "name": "코크 스크류 블로우",
+    "req": 35,
+    "maxl": 70,
+    "pre": "-",
+    "opt_desc": "회전 다단히트 공격력 : {value1}% x {value2} / 피니시 공격력 : {value3}% / 제압력 (4인 플레이) : <소수1+>초 (<소수1+>초) /  / [범위 정보] / 끌어들이는 x축 범위 : {value4}px / 끌어들이는 y축 범위 : {value5}px",
+    "lv1_ct": 20,
+    "lv1_cast": 0,
+    "lv1_opts": {
+      "value1": 1451,
+      "value2": 10,
+      "value3": 21798,
+      "value4": 1,
+      "value5": "-"
+    },
+    "lvmax_ct": 20,
+    "lvmax_cast": 0,
+    "lvmax_opts": {
+      "value1": 11606,
+      "value2": 10,
+      "value3": 174385,
+      "value4": 1,
+      "value5": "-"
+    },
+    "lv_count": 70
+  },
+  {
+    "name": "헤븐리 컴비네이션",
+    "req": 40,
+    "maxl": 70,
+    "pre": "-",
+    "opt_desc": "1타 공격력 : {value1}% / 2타 공격력 : {value2}% / 3타 공격력 : {value3}% /  / [범위 정보] / 범위 : {value4}%",
+    "lv1_ct": 16,
+    "lv1_cast": 0,
+    "lv1_opts": {
+      "value1": 7962,
+      "value2": 10385,
+      "value3": 16270,
+      "value4": 100
+    },
+    "lvmax_ct": 16,
+    "lvmax_cast": 0,
+    "lvmax_opts": {
+      "value1": 63693,
+      "value2": 83078,
+      "value3": 130156,
+      "value4": 100
+    },
+    "lv_count": 70
+  },
+  {
+    "name": "허리케인 롤",
+    "req": 45,
+    "maxl": 70,
+    "pre": "-",
+    "opt_desc": "훅 공격력 : {value1}% / 타격 횟수 : {value2}회 / 어퍼컷 공격력 : {value3}% /  / [범위 정보] / 끌어들이는 범위 : {value4}px",
+    "lv1_ct": 45,
+    "lv1_cast": 0,
+    "lv1_opts": {
+      "value1": 6267,
+      "value2": 10,
+      "value3": 26885,
+      "value4": 936
+    },
+    "lvmax_ct": 45,
+    "lvmax_cast": 0,
+    "lvmax_opts": {
+      "value1": 50138,
+      "value2": 10,
+      "value3": 215082,
+      "value4": 936
+    },
+    "lv_count": 70
+  },
+  {
+    "name": "빅뱅 펀치",
+    "req": 50,
+    "maxl": 50,
+    "pre": "-",
+    "opt_desc": "1타 공격력 : {value1}% / 2타 공격력 : {value2}% / 3타 공격력 : {value3}% / 4타 공격력 : {value4}% / 섀도우 박서 시전 중 공격력 변화율 : {value5}배",
+    "lv1_ct": 135,
+    "lv1_cast": 0,
+    "lv1_opts": {
+      "value1": 15375,
+      "value2": 23761,
+      "value3": 30750,
+      "value4": 69886,
+      "value5": 1.1
+    },
+    "lvmax_ct": 135,
+    "lvmax_cast": 0,
+    "lvmax_opts": {
+      "value1": 190070,
+      "value2": 293744,
+      "value3": 380139,
+      "value4": 863953,
+      "value5": 1.1
+    },
+    "lv_count": 50
+  },
+  {
+    "name": "개틀링 펀치",
+    "req": 60,
+    "maxl": 50,
+    "pre": "-",
+    "opt_desc": "연타 공격력 : {value1}% / 피니시 공격력 : {value2}% / 폭발 공격력 : {value3}% / 연타 타격 수 : {value4}회",
+    "lv1_ct": 35,
+    "lv1_cast": 0,
+    "lv1_opts": {
+      "value1": 4899,
+      "value2": 12249,
+      "value3": 20422,
+      "value4": 10
+    },
+    "lvmax_ct": 35,
+    "lvmax_cast": 0,
+    "lvmax_opts": {
+      "value1": 29250,
+      "value2": 73136,
+      "value3": 121943,
+      "value4": 10
+    },
+    "lv_count": 50
+  },
+  {
+    "name": "데몰리션 펀치",
+    "req": 70,
+    "maxl": 50,
+    "pre": "-",
+    "opt_desc": "공격력 : {value1}% / 충격파 공격력 : {value2}% /  / [범위 정보] / 충격파 범위 : {value3}%",
+    "lv1_ct": 40,
+    "lv1_cast": 0,
+    "lv1_opts": {
+      "value1": 98889,
+      "value2": 10988,
+      "value3": 100
+    },
+    "lvmax_ct": 40,
+    "lvmax_cast": 0,
+    "lvmax_opts": {
+      "value1": 590469,
+      "value2": 65608,
+      "value3": 100
+    },
+    "lv_count": 50
+  },
+  {
+    "name": "핵 펀치",
+    "req": 75,
+    "maxl": 50,
+    "pre": "-",
+    "opt_desc": "공격력 : {value1}% / 충격파 공격력 : {value2}% /  / [범위 정보] / 충격파 크기, 끌어들이는 범위 비율 : {value3}%",
+    "lv1_ct": 40,
+    "lv1_cast": 0,
+    "lv1_opts": {
+      "value1": 89048,
+      "value2": 38164,
+      "value3": 100
+    },
+    "lvmax_ct": 40,
+    "lvmax_cast": 0,
+    "lvmax_opts": {
+      "value1": 531709,
+      "value2": 227875,
+      "value3": 100
+    },
+    "lv_count": 50
+  },
+  {
+    "name": "아토믹 쵸퍼",
+    "req": 80,
+    "maxl": 50,
+    "pre": "-",
+    "opt_desc": "1타 공격력 : {value1}% / 2타 공격력 : {value2}% / 제압력 (4인 플레이) : <소수1+>초 (<소수1+>초) /  / [범위 정보] / 범위 : {value3}%",
+    "lv1_ct": 50,
+    "lv1_cast": 0,
+    "lv1_opts": {
+      "value1": 29024,
+      "value2": 116094,
+      "value3": 145
+    },
+    "lvmax_ct": 50,
+    "lvmax_cast": 0,
+    "lvmax_opts": {
+      "value1": 173300,
+      "value2": 693201,
+      "value3": 145
+    },
+    "lv_count": 50
+  },
+  {
+    "name": "신의 분노",
+    "req": 85,
+    "maxl": 50,
+    "pre": "-",
+    "opt_desc": "공격 범위 : {value1}px / 연타 공격력 : {value2}% / 연타 공격 히트수 : 19회 / 피니시 직접 타격 공격력 : {value3}% / 피니시 직접 타격 히트 수 : 2회 / 피니시 폭발 공격력 : {value4}%",
+    "lv1_ct": 170,
+    "lv1_cast": 0.5,
+    "lv1_opts": {
+      "value1": 600,
+      "value2": 6843,
+      "value3": 9981,
+      "value4": 151119
+    },
+    "lvmax_ct": 170,
+    "lvmax_cast": 0.5,
+    "lvmax_opts": {
+      "value1": 600,
+      "value2": 84592,
+      "value3": 123392,
+      "value4": 1868182
+    },
+    "lv_count": 50
+  },
+  {
+    "name": "어그레시브 저지먼트",
+    "req": 95,
+    "maxl": 50,
+    "pre": "-",
+    "opt_desc": "내려치기 충격파 공격력 : {value1}% / 연속 타격 공격력 : {value2}% x {value3} / 피니시 훅 공격력 : {value4}%",
+    "lv1_ct": 60,
+    "lv1_cast": 0,
+    "lv1_opts": {
+      "value1": 47594,
+      "value2": 4758,
+      "value3": 15,
+      "value4": 119008
+    },
+    "lvmax_ct": 60,
+    "lvmax_cast": 0,
+    "lvmax_opts": {
+      "value1": 284182,
+      "value2": 28409,
+      "value3": 15,
+      "value4": 710597
+    },
+    "lv_count": 50
+  },
+  {
+    "name": "정의 집행 : 레미디오스의 성좌",
+    "req": 100,
+    "maxl": 50,
+    "pre": "-",
+    "opt_desc": "1타 공격력 : {value1}% / 2타 공격력 : {value2}% / 제압력 (4인 플레이) : <소수1+>초 (<소수1+>초)",
+    "lv1_ct": 270,
+    "lv1_cast": 0,
+    "lv1_opts": {
+      "value1": 318556,
+      "value2": 477833
+    },
+    "lvmax_ct": 270,
+    "lvmax_cast": 0,
+    "lvmax_opts": {
+      "value1": 3938086,
+      "value2": 5907129
+    },
+    "lv_count": 50
+  }
+]
