@@ -356,17 +356,22 @@ contribution[L] = optionValue[valueKey][L] × hit × (damageMultiplier ?? 1.0)
 "evolutionOverrides": {
   "1": {
     "castTime": 0.25,
-    "damageMult": 0.5,
+    "damageMult": -50,
     "coolTime": 20,
     "comment": "패스트 뉴클리어: 시전시간 50% 감소, 쿨타임 20초, 공격력 50% 감소"
   },
   "2": {
-    "damageMult": 1.5,
+    "damageMult": 50,
     "coolTime": 60,
     "comment": "더 그레이티스트: 쿨타임 60초, 공격력 50% 증가"
   }
 }
 ```
+
+**damageMult / coolTime 작성 기준:**
+- `damageMult`: 퍼센트 변화량 정수 입력. 60 = 공격력 +60%, -50 = 공격력 -50%. null이면 변화 없음.
+- `coolTime`: 변경 후 절대 쿨타임(초) 입력. "쿨타임 n초로 변경" → n 입력. null이면 변화 없음.
+- `castTime`: 변경 후 절대 시전시간(초) 입력. null이면 변화 없음.
 
 **필드 작성 기준:**
 - `evolution`이 null인 스킬: `evolutionOverrides` 필드 생략
@@ -524,11 +529,11 @@ echo '{...}' | ./core/simulator
 > 이 섹션은 작업 진행에 따라 직접 업데이트한다.
 
 - [x] M0: 환경 세팅 + 설계 확정
-- [ ] M0.5: 스킬 데이터 파이프라인 (fetch_skills.js + manual JSON + merge_skills.js)
-- [ ] M1: C 코어 — 트리 자료구조
-- [ ] M2: C 코어 — 스킬 수치 계산
-- [ ] M3: C 코어 — 타임라인 시뮬레이터
-- [ ] M4: C 코어 — JSON I/O 통합
+- [x] M0.5: 스킬 데이터 파이프라인 (fetch_skills.js + manual JSON + merge_skills.js)
+- [x] M1: C 코어 — 트리 자료구조
+- [x] M2: C 코어 — 스킬 수치 계산
+- [x] M3: C 코어 — 타임라인 시뮬레이터
+- [x] M4: C 코어 — JSON I/O 통합
 - [ ] M5: Node.js 서버
 - [ ] M6: 프론트엔드 — 트리 시각화
 - [ ] M7: 프론트엔드 — 스펙 패널 + 결과 출력

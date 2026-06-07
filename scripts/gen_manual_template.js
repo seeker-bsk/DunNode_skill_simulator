@@ -15,8 +15,13 @@ function parseArgs() {
 /* 레벨 모드 자동 판별 */
 function detectLevelMode(skill) {
   if (skill.name === '기본기 숙련') return 'auto_char';
-  // 각성기: requiredLevelRange 5, maxLevel 50, active
-  if (skill.type === 'active' && skill.requiredLevelRange === 5 && skill.maxLevel === 50) return 'auto_every5';
+  // 각성기 패턴: requiredLevelRange=5, maxLevel=50, active
+  if (skill.type === 'active' && skill.requiredLevelRange === 5 && skill.maxLevel === 50) {
+    // 진각성기: requiredLevel >= 95 → SP 스킬 (sp_cost_lv1 별도 입력 필요)
+    if (skill.requiredLevel >= 95) return 'sp';
+    // 1차/2차 각성기: 캐릭터 레벨 연동 자동습득
+    return 'auto_every5';
+  }
   return 'sp';
 }
 
@@ -181,6 +186,12 @@ function main() {
   const data       = JSON.parse(fs.readFileSync(baseFile, 'utf8'));
   const skillNames = new Set(data.map(s => s.name));
 
+  /* 공통 스킬 로드: 신규 직업 manual 생성 시 자동 적용 */
+  const commonFile = path.resolve(__dirname, 'common_skills.json');
+  const commonMap  = fs.existsSync(commonFile)
+    ? new Map(JSON.parse(fs.readFileSync(commonFile, 'utf8')).map(e => [e.name, e]))
+    : new Map();
+
   const outDir  = path.resolve(__dirname, '../data/skills');
   const outFile = path.join(outDir, `${jobGrowId}_manual.json`);
 
@@ -235,10 +246,31 @@ function main() {
         castTime:            prev.castTime            ?? fresh.castTime,
         damageSources:       prev.damageSources       ?? fresh.damageSources,
         spCostPerLevel:      prev.spCostPerLevel      ?? fresh.spCostPerLevel,
+        ...(prev.spCostLv1 != null ? { spCostLv1: prev.spCostLv1 } : {}),
         masterLevelOverride: prev.masterLevelOverride ?? fresh.masterLevelOverride,
         /* evolutionOverrides는 위에서 이미 처리 */
         ...(fresh.evolutionOverrides ? { evolutionOverrides: fresh.evolutionOverrides } : {})
       };
+    }
+
+    /* 공통 스킬이면 common_skills.json 기본값 적용 */
+    if (commonMap.has(skill.name)) {
+      const common = commonMap.get(skill.name);
+      return {
+        skillId:  fresh.skillId,
+        name:     fresh.name,
+        levelMode:           common.levelMode,
+        castTime:            common.castTime,
+        damageSources:       common.damageSources,
+        ...(common.spCostPerLevel != null ? { spCostPerLevel: common.spCostPerLevel } : {}),
+        masterLevelOverride: common.masterLevelOverride
+      };
+    }
+
+    /* 진각성기: sp_cost_lv1 플레이스홀더 추가 */
+    if (fresh.levelMode === 'sp' && skill.requiredLevelRange === 5 && skill.maxLevel === 50) {
+      fresh.spCostLv1     = 0;   /* 인게임 확인 후 입력 */
+      fresh.spCostPerLevel = 0;  /* 인게임 확인 후 입력 */
     }
 
     return fresh;

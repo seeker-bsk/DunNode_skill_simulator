@@ -1,0 +1,47 @@
+[
+  {
+    "name": "기본기 숙련",
+    "levelMode": "auto_char",
+    "castTime": 0,
+    "damageSources": [],
+    "masterLevelOverride": null
+  },
+  {
+    "name": "백스텝",
+    "levelMode": "auto_char",
+    "castTime": 0,
+    "damageSources": [],
+    "masterLevelOverride": "same_as_max"
+  },
+  {
+    "name": "퀵 스탠딩",
+    "levelMode": "auto_char",
+    "castTime": 0,
+    "damageSources": [],
+    "masterLevelOverride": null
+  },
+  {
+    "name": "백스텝 강화",
+    "levelMode": "sp",
+    "castTime": 0,
+    "damageSources": [],
+    "spCostPerLevel": 50,
+    "masterLevelOverride": "same_as_max"
+  },
+  {
+    "name": "도약",
+    "levelMode": "sp",
+    "castTime": 0,
+    "damageSources": [],
+    "spCostPerLevel": 20,
+    "masterLevelOverride": "same_as_max"
+  },
+  {
+    "name": "크리티컬 히트",
+    "levelMode": "sp",
+    "castTime": 0,
+    "damageSources": [],
+    "spCostPerLevel": 20,
+    "masterLevelOverride": null
+  }
+]

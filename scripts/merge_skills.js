@@ -3,6 +3,9 @@
 const fs   = require('fs');
 const path = require('path');
 
+/* 만렙(115) + 달인의 계약(+5) 기준 유효 캐릭터 레벨 */
+const EFF_MAX_LV = 120;
+
 function parseArgs() {
   const args = {};
   for (const arg of process.argv.slice(2)) {
@@ -78,35 +81,139 @@ function buildDamagePerLevel(levelData, damageSources, masterLevel) {
 }
 
 /*
- * enhancement_type 파싱.
- * enhancement 배열에서 type 1 / type 2 존재 여부로 판단.
- * type 2 우선 (공격력+38%+CDR15%), type 1 (공격력+55%), 없으면 0.
+ * 강화 정보 해석.
+ * manual.enhancementDisabled = true → can_enhance: false, 모든 수치 0.
+ * 그 외: base.enhancement 배열에서 type별 공격력 % 실수치를 파싱해 저장.
+ * enhancement_type은 항상 0 (유저/옵티마이저가 선택).
+ *
+ * 직업별로 강화 불가 스킬이 다를 수 있으므로 enhancementDisabled는
+ * manual.json에서 수동으로 관리한다.
  */
-function resolveEnhancementType(enhancement) {
-  if (!Array.isArray(enhancement)) return 0;
-  const types = new Set(enhancement.map(e => e.type));
-  if (types.has(2)) return 2;
-  if (types.has(1)) return 1;
+function resolveEnhancement(base, manual) {
+  const noEnh = { can_enhance: false, enhancement_type: 0,
+                  enhancement_atk_1: 0, enhancement_atk_2: 0 };
+
+  if (manual.enhancementDisabled) return noEnh;
+  if (!Array.isArray(base.enhancement) || base.enhancement.length === 0) return noEnh;
+
+  const parseAtk = (enh) => {
+    const stat = enh?.status?.find(s => s.name.includes('공격력'));
+    return stat ? parseFloat(stat.value) / 100 : 0;
+  };
+
+  const t1 = base.enhancement.find(e => e.type === 1);
+  const t2 = base.enhancement.find(e => e.type === 2);
+  const atk1 = parseAtk(t1);
+  const atk2 = parseAtk(t2);
+
+  if (atk1 === 0 && atk2 === 0) return noEnh;
+  return { can_enhance: true, enhancement_type: 0, enhancement_atk_1: atk1, enhancement_atk_2: atk2 };
+}
+
+/*
+ * evolutionOverrides → bloom_option_1 / bloom_option_2 변환.
+ * bloom_type은 항상 0 (유저/옵티마이저가 선택).
+ * 값이 null인 항목은 0으로 저장 (0 = "해당 속성 미변경"을 의미).
+ */
+function resolveEvolution(manual) {
+  const noBloom = {
+    can_evolve:    false,
+    bloom_type:    0,
+    bloom_option_1: { cast_time: 0, damage_mult: 0, cooldown: 0 },
+    bloom_option_2: { cast_time: 0, damage_mult: 0, cooldown: 0 }
+  };
+
+  const ev = manual.evolutionOverrides;
+  if (!ev) return noBloom;
+
+  const opt = (key) => {
+    const o = ev[key] ?? {};
+    /* damageMult: 퍼센트 변화량 입력 (60 = +60% → ×1.6, -50 = -50% → ×0.5)
+     * null이면 0 저장 → C 코어에서 "변화 없음(×1.0)"으로 해석 */
+    const dm = o.damageMult;
+    const damage_mult = (dm != null) ? 1.0 + dm / 100.0 : 0;
+    /* coolTime: 절대값(초) 입력. null이면 0 → 변화 없음 */
+    return {
+      cast_time:   o.castTime ?? 0,
+      damage_mult,
+      cooldown:    o.coolTime ?? 0
+    };
+  };
+
+  return {
+    can_evolve:     true,
+    bloom_type:     0,
+    bloom_option_1: opt('1'),
+    bloom_option_2: opt('2')
+  };
+}
+
+/*
+ * is_job_skill 결정.
+ * manual.json에 isJobSkill boolean이 있으면 그것을 우선한다.
+ * 없으면 required_level 기준 자동 분류:
+ *   < 15 → 공통 스킬 (0)
+ *   > 15 → 전직 스킬 (1)
+ *   = 15 → 판단 불가, 경고 후 0 반환
+ */
+function resolveIsJobSkill(base, manual, warnings) {
+  if (typeof manual.isJobSkill === 'boolean') return manual.isJobSkill ? 1 : 0;
+  if (base.requiredLevel < 15) return 0;
+  if (base.requiredLevel > 15) return 1;
+  warnings.push(`is_job_skill 미지정 (requiredLevel=15): ${base.name} — manual.json에 "isJobSkill": true/false 추가 권장`);
   return 0;
 }
 
 /*
- * evolutionOverrides → bloomed_* 필드 변환.
- * bloom_type은 merge 단계에서는 0으로 초기화 (프론트가 선택).
+ * 패시브 보너스 목록 수집.
+ * passiveSkillAtkBonus가 있는 스킬의 master_level 수치를 읽어
+ * { scope, skillIds, bonusPct } 형태로 반환한다.
  */
-function resolveEvolution(manual) {
-  const ev = manual.evolutionOverrides;
-  if (!ev) {
-    return { bloom_type: 0, bloomed_cast_time: 0, bloomed_damage_mult: 0, bloomed_cooldown: 0 };
+function collectPassiveBonuses(baseArr, manMap) {
+  const result = [];
+  for (const base of baseArr) {
+    const manual = manMap.get(base.skillId);
+    if (!manual?.passiveSkillAtkBonus) continue;
+
+    const pb = manual.passiveSkillAtkBonus;
+    const ml = resolveMasterLevel(base, manual);
+    const range = base.requiredLevelRange ?? 1;
+    const charCap = Math.floor((EFF_MAX_LV - base.requiredLevel) / range) + 1;
+    const investable = Math.min(ml, Math.max(0, charCap));
+    if (investable <= 0) continue;
+
+    const lvEntry = base.levelData.find(d => d.level === investable)
+                 ?? base.levelData[base.levelData.length - 1];
+    const bonusPct = numOrNull(lvEntry?.optionValue?.[pb.valueKey]);
+    if (bonusPct === null) continue;
+
+    result.push({
+      scope:    pb.scope,       /* 'all' | 'advanced_class' | 'skill_list' */
+      skillIds: pb.skillIds ?? [],
+      bonusPct                  /* 예: 30 → +30% */
+    });
   }
-  /* evolutionOverrides 데이터는 보존, bloom_type은 0 (미선택 초기값) */
-  return {
-    bloom_type:          0,
-    bloomed_cast_time:   0,
-    bloomed_damage_mult: 0,
-    bloomed_cooldown:    0,
-    evolution_options:   ev   /* 프론트/C 코어가 참조할 개화 선택지 */
-  };
+  return result;
+}
+
+/*
+ * 단일 스킬에 대한 passive_mult 계산.
+ * passive_mult = ∏(1 + bonusPct_i / 100)  (적용 대상 패시브만)
+ */
+function computePassiveMult(skillId, isJobSkill, passiveBonuses) {
+  let mult = 1.0;
+  for (const pb of passiveBonuses) {
+    let applies = false;
+    if (pb.scope === 'all') {
+      applies = true;
+    } else if (pb.scope === 'advanced_class') {
+      applies = isJobSkill === 1;
+    } else if (pb.scope === 'skill_list') {
+      applies = pb.skillIds.includes(skillId);
+    }
+    if (applies) mult *= 1 + pb.bonusPct / 100;
+  }
+  return parseFloat(mult.toFixed(6));
 }
 
 /* level_mode 문자열 → 정수 열거값 (JSON 포맷) */
@@ -134,6 +241,9 @@ function main() {
   /* skillId → manual 맵 */
   const manMap = new Map(manualArr.map(m => [m.skillId, m]));
 
+  /* 패시브 보너스 목록 (passive_mult 계산에 사용) */
+  const passiveBonuses = collectPassiveBonuses(baseArr, manMap);
+
   const merged = [];
   const warnings = [];
 
@@ -145,6 +255,7 @@ function main() {
     }
 
     const masterLevel  = resolveMasterLevel(base, manual);
+    const isJobSkill   = resolveIsJobSkill(base, manual, warnings);
     const lv1Entry     = base.levelData.find(d => d.level === 1) ?? base.levelData[0] ?? {};
     const damageSrcs   = manual.damageSources ?? [];
 
@@ -154,7 +265,8 @@ function main() {
       damagePerLevel = buildDamagePerLevel(base.levelData, damageSrcs, masterLevel);
     }
 
-    const evFields = resolveEvolution(manual);
+    const evFields  = resolveEvolution(manual);
+    const enhFields = resolveEnhancement(base, manual);
 
     const entry = {
       skill_id:             base.skillId,
@@ -168,19 +280,25 @@ function main() {
       master_level:         masterLevel,
       current_level:        0,
       sp_cost_per_level:    manual.spCostPerLevel ?? 0,
+      must_master:          manual.mustMaster ? 1 : 0,
+      is_job_skill:         isJobSkill,
       level_mode:           levelModeStr(manual.levelMode),
 
       /* 데미지 배열 (레벨 1~master_level, 인덱스 0 = lv1) */
       damage_per_level:     damagePerLevel,
+      passive_mult:         base.type === 'active'
+                              ? computePassiveMult(base.skillId, isJobSkill, passiveBonuses)
+                              : 1.0,
 
       /* 타이밍 */
       base_cooldown:        lv1Entry.coolTime ?? 0,
       cast_time:            manual.castTime ?? 0,
+      sp_cost_lv1:          manual.spCostLv1 ?? 0,
 
-      /* 강화 */
-      enhancement_type:     resolveEnhancementType(base.enhancement),
+      /* 강화: can_enhance / enhancement_type(0=미적용) / 실수치 배율 */
+      ...enhFields,
 
-      /* 개화 */
+      /* 개화: can_evolve / bloom_type(0=미선택) / 선택지 */
       ...evFields,
 
       /* 선행 스킬 */
@@ -208,10 +326,11 @@ function main() {
     for (const s of noDmg) console.log(`   - ${s.name}`);
   }
 
-  const noEvol = merged.filter(s => s.evolution_options &&
-    Object.values(s.evolution_options).some(v => v.castTime === null && v.damageMult === null && v.coolTime === null));
+  const noEvol = merged.filter(s => s.can_evolve &&
+    s.bloom_option_1.cast_time === 0 && s.bloom_option_1.damage_mult === 0 && s.bloom_option_1.cooldown === 0 &&
+    s.bloom_option_2.cast_time === 0 && s.bloom_option_2.damage_mult === 0 && s.bloom_option_2.cooldown === 0);
   if (noEvol.length > 0) {
-    console.log('\n⚠  evolutionOverrides 미입력 스킬:');
+    console.log('\n⚠  evolutionOverrides 미입력 스킬 (bloom_option 전부 0):');
     for (const s of noEvol) console.log(`   - ${s.name}`);
   }
 }
