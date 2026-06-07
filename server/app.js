@@ -11,10 +11,12 @@ const PORT   = 5000;
 const TIMEOUT_MS     = 5000;
 const SIMULATOR_PATH = path.join(__dirname, '..', 'core', 'simulator.exe');
 const DATA_DIR       = path.join(__dirname, '..', 'data', 'skills');
+const JOBS_FILE      = path.join(__dirname, '..', 'data', 'jobs.json');
 const SCRIPTS_DIR    = path.join(__dirname, '..', 'scripts');
 
 app.use(cors());
 app.use(express.json());
+app.use('/media', express.static(path.join(__dirname, '..', 'media')));
 
 /* jobGrowId는 32자리 hex 문자열만 허용 (경로 순회 방지) */
 function isValidJobGrowId(id) {
@@ -59,18 +61,32 @@ app.get('/ping', (_req, res) => {
     res.json({ status: 'ok' });
 });
 
-/* ── GET /tree/:jobGrowId ─────────────────────────────────────────────
- * 직업별 merged.json을 읽어 그대로 반환한다.
- * C 코어가 읽는 최종 파일이므로 Node.js에서 가공하지 않는다. */
-app.get('/tree/:jobGrowId', (req, res) => {
-    const { jobGrowId } = req.params;
-    if (!isValidJobGrowId(jobGrowId)) {
-        return res.status(400).json({ error: 'invalid_job_grow_id' });
+/* ── GET /jobs ────────────────────────────────────────────────────────
+ * jobs.json 전체 반환. hasData 필드를 동적으로 추가한다. */
+app.get('/jobs', (_req, res) => {
+    try {
+        const jobs = JSON.parse(fs.readFileSync(JOBS_FILE, 'utf8'));
+        const result = jobs.map(j => ({
+            ...j,
+            hasData: fs.existsSync(path.join(DATA_DIR, `${j.dataKey}_merged.json`))
+        }));
+        res.json(result);
+    } catch {
+        res.status(500).json({ error: 'jobs_load_error' });
+    }
+});
+
+/* ── GET /tree/:dataKey ───────────────────────────────────────────────
+ * dataKey = {jobId}_{jobGrowId}. 직업별 merged.json을 그대로 반환한다. */
+app.get('/tree/:dataKey', (req, res) => {
+    const { dataKey } = req.params;
+    if (!/^[0-9a-f]{32}_[0-9a-f]{32}$/.test(dataKey)) {
+        return res.status(400).json({ error: 'invalid_data_key' });
     }
 
-    const filePath = path.join(DATA_DIR, `${jobGrowId}_merged.json`);
+    const filePath = path.join(DATA_DIR, `${dataKey}_merged.json`);
     if (!fs.existsSync(filePath)) {
-        return res.status(404).json({ error: 'not_found', jobGrowId });
+        return res.status(404).json({ error: 'not_found', dataKey });
     }
 
     try {
@@ -100,16 +116,18 @@ app.post('/api/simulate', async (req, res) => {
     }
 });
 
-/* ── POST /skills/rebuild/:jobGrowId ─────────────────────────────────
- * merge_skills.js를 실행해 merged.json을 재생성한다. */
-app.post('/skills/rebuild/:jobGrowId', (req, res) => {
-    const { jobGrowId } = req.params;
-    if (!isValidJobGrowId(jobGrowId)) {
-        return res.status(400).json({ error: 'invalid_job_grow_id' });
+/* ── POST /skills/rebuild/:dataKey ───────────────────────────────────
+ * merge_skills.js를 실행해 merged.json을 재생성한다.
+ * dataKey = {jobId}_{jobGrowId} */
+app.post('/skills/rebuild/:dataKey', (req, res) => {
+    const { dataKey } = req.params;
+    if (!/^[0-9a-f]{32}_[0-9a-f]{32}$/.test(dataKey)) {
+        return res.status(400).json({ error: 'invalid_data_key' });
     }
+    const [jobId, jobGrowId] = dataKey.split('_');
 
     const scriptPath = path.join(SCRIPTS_DIR, 'merge_skills.js');
-    const child = spawn('node', [scriptPath, `--jobGrowId=${jobGrowId}`]);
+    const child = spawn('node', [scriptPath, `--jobId=${jobId}`, `--jobGrowId=${jobGrowId}`]);
     let stdout = '';
     let stderr = '';
 
@@ -127,7 +145,7 @@ app.post('/skills/rebuild/:jobGrowId', (req, res) => {
         if (code !== 0) {
             return res.status(500).json({ error: 'merge_failed', detail: stderr.trim() });
         }
-        res.json({ status: 'ok', jobGrowId, log: stdout.trim() });
+        res.json({ status: 'ok', dataKey, log: stdout.trim() });
     });
 
     child.on('error', () => {

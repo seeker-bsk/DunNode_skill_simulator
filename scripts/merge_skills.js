@@ -222,12 +222,13 @@ function levelModeStr(mode) {
 }
 
 function main() {
-  const { jobGrowId } = parseArgs();
-  if (!jobGrowId) {
-    console.error('Usage: node merge_skills.js --jobGrowId=<id>');
+  const { jobId, jobGrowId } = parseArgs();
+  if (!jobId || !jobGrowId) {
+    console.error('Usage: node merge_skills.js --jobId=<id> --jobGrowId=<id>');
     process.exit(1);
   }
 
+  const dataKey  = `${jobId}_${jobGrowId}`;
   const dir      = path.resolve(__dirname, '../data/skills');
   const baseFile = path.join(dir, `${jobGrowId}_base.json`);
   const manFile  = path.join(dir, `${jobGrowId}_manual.json`);
@@ -302,14 +303,14 @@ function main() {
       ...evFields,
 
       /* 선행 스킬 */
-      pre_required_skill_id: base.preRequiredSkill?.skillId ?? '',
+      pre_required_skill_id: base.preRequiredSkill?.[0]?.skillId ?? '',
       parent_id:             -1
     };
 
     merged.push(entry);
   }
 
-  const outFile = path.join(dir, `${jobGrowId}_merged.json`);
+  const outFile = path.join(dir, `${dataKey}_merged.json`);
   fs.writeFileSync(outFile, JSON.stringify(merged, null, 2), 'utf8');
   console.log(`Merged → ${outFile}  (${merged.length} skills)`);
 

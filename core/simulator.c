@@ -8,7 +8,9 @@ void prepare_auto_levels(SkillTree* tree, const CharacterStats* cs) {
         Skill* s = &tree->skills[i];
         switch (s->level_mode) {
             case LEVEL_MODE_AUTO_CHAR:
-                s->current_level = eff_lv < s->master_level ? eff_lv : s->master_level;
+                /* 기본기 숙련류: 달인의 계약 미적용, 실제 캐릭터 레벨(115)만 반영 */
+                s->current_level = cs->char_level < s->master_level
+                                   ? cs->char_level : s->master_level;
                 break;
             case LEVEL_MODE_AUTO_EVERY5:
                 s->current_level = get_auto_every5_level(s, eff_lv);

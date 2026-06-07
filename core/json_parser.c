@@ -150,7 +150,8 @@ int parse_simulation_input(SimulationInput* out) {
     CS_INT(char_level,              "char_level",              115);
     CS_INT(total_sp,                "total_sp",                0);
     j = cJSON_GetObjectItem(char_j, "mastery_contract");
-    cs->mastery_contract = (j && cJSON_IsTrue(j)) ? 1 : 0;
+    /* boolean true 또는 정수 1(비-영) 모두 허용 */
+    cs->mastery_contract = j ? (cJSON_IsTrue(j) || (cJSON_IsNumber(j) && j->valueint != 0)) : 0;
 
 #undef CS_FLT
 #undef CS_INT
@@ -236,12 +237,22 @@ void print_simulation_result(const SimulationResult* result,
     if (opt || sp_alloc) {
         cJSON* opt_j = cJSON_AddObjectToObject(root, "optimization");
 
-        /* sp_allocation 서브블록 */
+        /* sp_allocation 서브블록 + 배분 후 스킬별 현재 레벨 */
         if (sp_alloc) {
             cJSON* sp_j = cJSON_AddObjectToObject(opt_j, "sp_allocation");
             cJSON_AddNumberToObject(sp_j, "sp_used",         sp_alloc->sp_used);
             cJSON_AddNumberToObject(sp_j, "sp_remaining",    sp_alloc->sp_remaining);
             cJSON_AddNumberToObject(sp_j, "skills_mastered", sp_alloc->skills_mastered);
+
+            /* 프론트엔드 UI 동기화: SP 배분 후 각 스킬의 최종 current_level */
+            cJSON* lvls = cJSON_AddArrayToObject(opt_j, "skill_levels");
+            for (int i = 0; i < tree->count; i++) {
+                const Skill* s = &tree->skills[i];
+                cJSON* item = cJSON_CreateObject();
+                cJSON_AddStringToObject(item, "skill_id",      s->skill_id);
+                cJSON_AddNumberToObject(item, "current_level", s->current_level);
+                cJSON_AddItemToArray(lvls, item);
+            }
         }
 
         if (opt) {

@@ -1,0 +1,51 @@
+/* 테마 전환 시 배경/텍스트 색상 부드럽게 */
+body,
+.app,
+.header,
+.skill-tree-panel,
+.right-panel,
+.skill-node,
+.stats-panel,
+.result-panel {
+  transition: background-color 200ms ease, border-color 200ms ease, color 200ms ease;
+}
+
+/* 스킬 노드 버튼 눌림 효과 */
+.skill-btn:active:not(:disabled) {
+  transform: scale(0.88);
+}
+.btn-simulate:active:not(:disabled),
+.btn-optimize:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+/* 컨트리뷰션 바 등장 */
+@keyframes bar-grow {
+  from { transform: scaleX(0); transform-origin: left; }
+  to   { transform: scaleX(1); transform-origin: left; }
+}
+.contribution-bar {
+  animation: bar-grow 350ms ease-out;
+}
+
+/* 로딩 회전 (추후 사용) */
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+.loading-spinner {
+  width: 18px;
+  height: 18px;
+  border: 2px solid var(--border);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+/* 결과 카드 페이드인 */
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.result-appear {
+  animation: fade-in 250ms ease-out;
+}

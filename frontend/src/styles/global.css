@@ -1,0 +1,863 @@
+/* === 다크 테마 (기본) === */
+:root {
+  --bg:              #0d1117;
+  --bg-panel:        #161b22;
+  --surface:         #21262d;
+  --surface-hover:   #2d333b;
+  --text:            #c9d1d9;
+  --text-muted:      #8b949e;
+  --text-heading:    #e6edf3;
+  --accent:          #388bfd;
+  --accent-hover:    #58a6ff;
+  --success:         #3fb950;
+  --warning:         #e3b341;
+  --danger:          #f85149;
+  --border:          #30363d;
+  --border-strong:   #484f58;
+  --node-bg:         #161b22;
+  --node-border:     #30363d;
+  --node-learned-bg: rgba(56, 139, 253, 0.12);
+  --node-learned-bd: rgba(56, 139, 253, 0.55);
+  --btn-bg:          #21262d;
+  --btn-hover:       #2d333b;
+  --btn-border:      #484f58;
+  --btn-disabled:    #21262d;
+  --scrollbar:       #30363d;
+  --scrollbar-thumb: #484f58;
+}
+
+/* === 라이트 테마 === */
+[data-theme="light"] {
+  --bg:              #f6f8fa;
+  --bg-panel:        #ffffff;
+  --surface:         #ffffff;
+  --surface-hover:   #eaeef2;
+  --text:            #24292f;
+  --text-muted:      #57606a;
+  --text-heading:    #1f2328;
+  --accent:          #0969da;
+  --accent-hover:    #0550ae;
+  --success:         #1a7f37;
+  --warning:         #9a6700;
+  --danger:          #cf222e;
+  --border:          #d0d7de;
+  --border-strong:   #afb8c1;
+  --node-bg:         #ffffff;
+  --node-border:     #d0d7de;
+  --node-learned-bg: rgba(9, 105, 218, 0.08);
+  --node-learned-bd: rgba(9, 105, 218, 0.55);
+  --btn-bg:          #f6f8fa;
+  --btn-hover:       #eaeef2;
+  --btn-border:      #d0d7de;
+  --btn-disabled:    #f6f8fa;
+  --scrollbar:       #d0d7de;
+  --scrollbar-thumb: #afb8c1;
+}
+
+/* === 기본 리셋 === */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  font-size: 13px;
+  background: var(--bg);
+  color: var(--text);
+}
+
+#root {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* === 스크롤바 === */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: var(--scrollbar); }
+::-webkit-scrollbar-thumb { background: var(--scrollbar-thumb); border-radius: 3px; }
+
+/* === 공통 버튼 === */
+button {
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 11px;
+  border: 1px solid var(--btn-border);
+  background: var(--btn-bg);
+  color: var(--text);
+  border-radius: 4px;
+  padding: 3px 6px;
+  line-height: 1;
+  transition: background 120ms, border-color 120ms;
+}
+button:hover:not(:disabled) { background: var(--btn-hover); border-color: var(--border-strong); }
+button:disabled { opacity: 0.35; cursor: not-allowed; }
+
+/* === 공통 입력 === */
+input[type="number"],
+input[type="text"],
+select {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--text);
+  font-family: inherit;
+  font-size: 12px;
+  padding: 4px 6px;
+}
+input:focus, select:focus { outline: 2px solid var(--accent); outline-offset: -1px; border-color: var(--accent); }
+input[type="range"] { width: 100%; accent-color: var(--accent); cursor: pointer; }
+
+/* === 앱 레이아웃 === */
+.app {
+  display: grid;
+  grid-template-rows: 52px 1fr;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.main-content {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  overflow: hidden;
+}
+
+/* 왼쪽 패널: 스펙 조정 + 시뮬레이션 + 결과 요약 */
+.left-panel {
+  overflow-y: auto;
+  border-right: 1px solid var(--border);
+  background: var(--bg-panel);
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+/* 오른쪽 패널: 탭 구조 */
+.right-panel {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--bg);
+}
+
+/* 탭 바 */
+.main-tab-bar {
+  display: flex;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-panel);
+  flex-shrink: 0;
+}
+.main-tab-btn {
+  padding: 10px 18px;
+  font-size: 12px;
+  font-weight: 600;
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  border-radius: 0;
+  color: var(--text-muted);
+  cursor: pointer;
+  margin-bottom: -1px;
+  transition: color 150ms, border-color 150ms;
+}
+.main-tab-btn:hover:not(:disabled) { color: var(--text); background: none; border-color: var(--border-strong); }
+.main-tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+/* 탭 컨텐츠 영역 */
+.tab-content {
+  flex: 1;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.skill-tree-panel {
+  flex: 1;
+  overflow: auto;
+  padding: 12px 16px;
+  background: var(--bg);
+}
+
+/* 시뮬레이션 실행 버튼 영역 */
+.sim-actions {
+  padding: 10px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  border-bottom: 1px solid var(--border);
+}
+
+/* 결과 요약 (왼쪽 패널 하단) */
+.result-summary {
+  padding: 12px 14px;
+}
+
+/* === 로딩/빈 상태 === */
+.loading-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 200px;
+  color: var(--text-muted);
+  font-size: 14px;
+}
+
+/* === 헤더 === */
+.header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 16px;
+  background: var(--bg-panel);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.header-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-heading);
+  white-space: nowrap;
+}
+.header-job-select {
+  flex: 1;
+  max-width: 260px;
+}
+.header-job-select select {
+  width: 100%;
+  font-size: 12px;
+  padding: 5px 8px;
+}
+.theme-toggle {
+  margin-left: auto;
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 5px 10px;
+  font-size: 14px;
+  color: var(--text-muted);
+}
+
+/* === 스킬 트리 === */
+.skill-tree-panels {
+  display: flex;
+  align-items: flex-start;
+  gap: 0;
+}
+
+.skill-tree-root {
+  position: relative;
+}
+.edges-layer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  overflow: visible;
+}
+
+/* 선행 관계 패널 */
+.chain-panel {
+  flex-shrink: 0;
+  border-left: 1px solid var(--border);
+  padding-left: 0;
+}
+.chain-panel-title {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-align: center;
+  padding: 6px 0 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.chain-panel-inner {
+  position: relative;
+}
+.chain-lv-tag {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-align: center;
+  line-height: 1;
+  padding-bottom: 4px;
+  width: 100%;
+}
+
+/* === 스킬 노드 === */
+.skill-node {
+  position: absolute;
+  background: var(--node-bg);
+  border: 1px solid var(--node-border);
+  border-radius: 6px;
+  padding: 5px 4px 4px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  min-height: 138px; /* NODE_H 상수와 동일하게 유지 — 화살표 시작점 기준 */
+  user-select: none;
+  transition: transform 120ms ease, box-shadow 120ms ease, border-color 120ms;
+}
+.skill-node:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.35); }
+.skill-node.learned {
+  background: var(--node-learned-bg);
+  border-color: var(--node-learned-bd);
+}
+.skill-node.cant-learn { opacity: 0.45; }
+.skill-node.auto { border-style: dashed; }
+.skill-node.prereq-blocked {
+  border-color: var(--warning);
+  opacity: 0.6;
+}
+
+.skill-icon-wrap {
+  position: relative;
+  width: 54px;
+  height: 54px;
+  flex-shrink: 0;
+  cursor: pointer;
+}
+.skill-icon {
+  width: 54px;
+  height: 54px;
+  border-radius: 4px;
+  display: block;
+  object-fit: cover;
+  image-rendering: pixelated;
+}
+.skill-icon-fallback {
+  width: 54px;
+  height: 54px;
+  border-radius: 4px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  color: var(--text-muted);
+  text-align: center;
+  word-break: break-all;
+  padding: 2px;
+  line-height: 1.2;
+}
+.skill-lv-badge {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0,0,0,0.75);
+  color: #fff;
+  font-size: 9px;
+  font-weight: 600;
+  padding: 1px 4px;
+  border-radius: 3px;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.skill-name {
+  font-size: 10px;
+  color: var(--text-muted);
+  text-align: center;
+  width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  line-height: 1.2;
+}
+
+.skill-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  width: 100%;
+}
+/* 레벨 조절 버튼 4개가 나란히 들어가는 한 행 */
+.skill-btns-row {
+  display: flex;
+  gap: 2px;
+  width: 100%;
+}
+.skill-btn {
+  flex: 1;
+  padding: 4px 0;
+  font-size: 10px;
+  border-radius: 3px;
+  min-width: 0;
+  font-weight: 600;
+}
+
+.skill-auto-label {
+  font-size: 9px;
+  color: var(--text-muted);
+  background: var(--surface);
+  border-radius: 3px;
+  padding: 2px 6px;
+}
+
+/* 잠금 버튼: 전체 너비, 두 번째 행 */
+.skill-lock-btn {
+  flex: none;
+  width: 100%;
+  padding: 3px 0;
+  font-size: 10px;
+  border-radius: 3px;
+  color: var(--text-muted);
+  opacity: 0.5;
+  transition: opacity 100ms, background 100ms, color 100ms;
+}
+.skill-lock-btn:hover:not(:disabled) { opacity: 1; }
+.skill-lock-btn.locked {
+  background: var(--warning);
+  border-color: var(--warning);
+  color: #1a1a1a;
+  opacity: 1;
+  font-weight: 700;
+}
+
+/* 잠금된 노드: 황금 테두리 */
+.skill-node.locked {
+  border-color: var(--warning);
+  box-shadow: 0 0 0 1px var(--warning);
+}
+
+/* 행 레이블 */
+.row-label {
+  position: absolute;
+  right: 100%;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 10px;
+  color: var(--text-muted);
+  white-space: nowrap;
+  padding-right: 6px;
+}
+
+/* === 스탯 패널 === */
+.stats-panel {
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--border);
+}
+.stats-panel h3 {
+  margin: 0 0 10px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-heading);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.stat-row {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  margin-bottom: 10px;
+}
+.stat-label {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+.stat-value {
+  color: var(--text);
+  font-weight: 600;
+}
+.stat-checkbox-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  margin-bottom: 10px;
+}
+.sp-info {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  padding: 6px 8px;
+  background: var(--surface);
+  border-radius: 4px;
+  margin-bottom: 10px;
+}
+.sp-over { color: var(--danger); font-weight: 600; }
+.sp-ok   { color: var(--success); }
+
+/* === 결과 패널 === */
+.result-panel {
+  padding: 12px 14px;
+  flex: 1;
+}
+.result-panel h3 {
+  margin: 0 0 10px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-heading);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.result-buttons {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+.btn-simulate {
+  flex: 1;
+  padding: 7px 0;
+  font-size: 12px;
+  font-weight: 600;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  transition: background 120ms;
+}
+.btn-simulate:hover:not(:disabled) { background: var(--accent-hover); }
+.btn-simulate:disabled { background: var(--surface); color: var(--text-muted); border: 1px solid var(--border); }
+
+.btn-optimize {
+  flex: 1;
+  padding: 7px 0;
+  font-size: 12px;
+  font-weight: 600;
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border-strong);
+  border-radius: 5px;
+}
+.btn-optimize:hover:not(:disabled) { background: var(--surface-hover); }
+.btn-optimize:disabled { opacity: 0.4; }
+
+.result-error {
+  padding: 8px 10px;
+  background: rgba(248, 81, 73, 0.15);
+  border: 1px solid var(--danger);
+  border-radius: 5px;
+  color: var(--danger);
+  font-size: 12px;
+}
+
+.result-total {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text-heading);
+  margin-bottom: 12px;
+  text-align: center;
+}
+.result-total-label {
+  font-size: 11px;
+  color: var(--text-muted);
+  display: block;
+  margin-bottom: 2px;
+}
+.result-total-unit {
+  font-size: 14px;
+  font-weight: 400;
+  color: var(--text-muted);
+  margin-left: 3px;
+}
+
+.contribution-list { display: flex; flex-direction: column; gap: 5px; }
+.contribution-row {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+}
+.contribution-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--text);
+}
+.contribution-bar-wrap {
+  grid-column: 1 / -1;
+  height: 4px;
+  background: var(--surface);
+  border-radius: 2px;
+  overflow: hidden;
+  margin-top: -3px;
+}
+.contribution-bar {
+  height: 100%;
+  background: var(--accent);
+  border-radius: 2px;
+  transition: width 300ms ease;
+}
+.contribution-pct { color: var(--text-muted); font-weight: 600; min-width: 36px; text-align: right; }
+.contribution-count { color: var(--text-muted); min-width: 28px; text-align: right; }
+
+.sp-alloc-info {
+  margin-top: 10px;
+  padding: 7px 9px;
+  background: var(--surface);
+  border-radius: 4px;
+  font-size: 11px;
+  color: var(--text-muted);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+/* === 시뮬레이션 분석 패널 === */
+.analysis-panel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.analysis-empty {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  font-size: 14px;
+}
+
+.analysis-tab-bar {
+  display: flex;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-panel);
+  flex-shrink: 0;
+}
+.analysis-tab-btn {
+  padding: 8px 14px;
+  font-size: 11px;
+  font-weight: 600;
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  border-radius: 0;
+  color: var(--text-muted);
+  cursor: pointer;
+  margin-bottom: -1px;
+  transition: color 150ms, border-color 150ms;
+}
+.analysis-tab-btn:hover:not(:disabled) { color: var(--text); background: none; border-color: var(--border-strong); }
+.analysis-tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+.analysis-content {
+  flex: 1;
+  overflow-y: auto;
+  background: var(--bg);
+}
+
+/* 데미지 통계 테이블 */
+.dmg-table-wrap {
+  overflow-x: auto;
+  padding: 0;
+}
+.dmg-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+.dmg-table th {
+  text-align: left;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border);
+  font-size: 10.5px;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+  background: var(--bg-panel);
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+.dmg-table td {
+  padding: 7px 12px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text);
+  background: transparent;
+}
+.dmg-table tbody tr:hover { filter: brightness(1.18); }
+.dmg-table .num-col { text-align: right; white-space: nowrap; }
+.dmg-table .name-col { min-width: 150px; }
+.dmg-table .pct-col  { font-weight: 700; color: var(--accent); }
+
+/* 이름 셀: 아이콘 + 텍스트 가로 정렬 */
+.tbl-name-cell {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.tbl-skill-icon {
+  width: 30px;
+  height: 30px;
+  border-radius: 4px;
+  flex-shrink: 0;
+  object-fit: cover;
+  image-rendering: pixelated;
+  border: 1px solid var(--border);
+}
+.tbl-icon-fallback {
+  width: 30px;
+  height: 30px;
+  border-radius: 4px;
+  flex-shrink: 0;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 9px;
+  color: var(--text-muted);
+  text-align: center;
+  line-height: 1.1;
+}
+
+/* 데미지 차트 */
+.timeline-view { padding: 0 0 20px; }
+.chart-wrap { padding: 16px 16px 8px; border-bottom: 1px solid var(--border); }
+.chart-legend {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 8px;
+  font-size: 11px;
+}
+.legend-cum { color: var(--accent); font-weight: 600; }
+.legend-dps { color: var(--warning); font-weight: 600; }
+
+/* 스킬 사용 순서 (아이콘 타임라인) */
+.skill-seq-wrap { padding: 16px; }
+.skill-seq-title {
+  font-size: 10.5px;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 8px;
+}
+
+/* 가로 스크롤 컨테이너 */
+.skill-seq-scroll {
+  overflow-x: auto;
+  overflow-y: hidden;
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+}
+
+/* 내부 고정 너비 영역 (JS로 width/height 지정) */
+.skill-seq-inner {
+  position: relative;
+  /* width / height는 inline style로 */
+}
+
+/* 루즐 베이스라인: SEQ_RULER_H = 24px */
+.seq-baseline {
+  position: absolute;
+  top: 24px;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: var(--border-strong);
+}
+
+/* 마이너 틱 (짧은 눈금) */
+.seq-minor-tick {
+  position: absolute;
+  top: 18px;
+  transform: translateX(-50%);
+  width: 1px;
+  height: 6px;
+  background: var(--border);
+}
+
+/* 메이저 틱 + 레이블 */
+.seq-major-tick {
+  position: absolute;
+  top: 0;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.seq-major-tick span {
+  font-size: 8.5px;
+  color: var(--text-muted);
+  white-space: nowrap;
+  line-height: 14px;
+}
+.seq-major-tick::after {
+  content: '';
+  display: block;
+  width: 1px;
+  height: 10px;
+  background: var(--border-strong);
+}
+
+/* 스킬 아이콘 래퍼 */
+.seq-skill-item {
+  position: absolute;
+  cursor: default;
+  transition: transform 100ms;
+  z-index: 1;
+}
+.seq-skill-item:hover {
+  transform: scale(1.25);
+  z-index: 10;
+}
+
+/* 시퀀스 아이콘 이미지 */
+.seq-skill-icon {
+  display: block;
+  border-radius: 5px;
+  object-fit: cover;
+  image-rendering: pixelated;
+  border: 1.5px solid rgba(255, 255, 255, 0.18);
+}
+[data-theme="light"] .seq-skill-icon {
+  border-color: rgba(0, 0, 0, 0.15);
+}
+
+/* 시퀀스 폴백 (아이콘 없는 경우) */
+.seq-icon-fallback {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 5px;
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  font-size: 10px;
+  color: var(--text-muted);
+  text-align: center;
+  line-height: 1.1;
+}
+
+/* === 토스트 알림 === */
+@keyframes toast-slide {
+  0%   { opacity: 0; transform: translate(-50%, 10px); }
+  12%  { opacity: 1; transform: translate(-50%, 0); }
+  80%  { opacity: 1; transform: translate(-50%, 0); }
+  100% { opacity: 0; transform: translate(-50%, -6px); }
+}
+
+.toast {
+  position: fixed;
+  bottom: 28px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  border-left: 3px solid var(--success);
+  color: var(--text);
+  padding: 10px 20px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.45);
+  z-index: 9999;
+  white-space: nowrap;
+  pointer-events: none;
+  animation: toast-slide 3s ease forwards;
+}
