@@ -87,11 +87,16 @@ html,
 body {
   margin: 0;
   padding: 0;
-  height: 100%;
   font-family:
-    "Segoe UI",
-    system-ui,
+    "Pretendard Variable",
+    Pretendard,
     -apple-system,
+    BlinkMacSystemFont,
+    system-ui,
+    "Segoe UI",
+    "Apple SD Gothic Neo",
+    "Noto Sans KR",
+    "Malgun Gothic",
     sans-serif;
   font-size: 14px;
   background: var(--bg-outer);
@@ -99,9 +104,7 @@ body {
 }
 
 #root {
-  height: 100vh;
-  display: flex;
-  flex-direction: column;
+  min-height: 100vh;
 }
 
 /* === 스크롤바 === */
@@ -168,14 +171,14 @@ input[type="range"] {
 /* === 앱 레이아웃 === */
 .app {
   display: grid;
-  grid-template-rows: 44px var(--banner-h) auto 1fr;
-  height: 100vh;
-  overflow: hidden;
+  grid-template-rows: 44px var(--banner-h) auto auto;
   background: var(--bg-outer);
 }
 
-/* 직업 선택 전: banner가 나머지 채움 */
+/* 직업 선택 전: 배너가 나머지 뷰포트 채움, viewport-locked */
 .app.no-job {
+  height: 100vh;
+  overflow: hidden;
   grid-template-rows: 44px 1fr;
 }
 
@@ -183,31 +186,38 @@ input[type="range"] {
 .content-area {
   display: grid;
   grid-template-columns: var(--sidebar-w) 1fr;
-  overflow: hidden;
-  min-height: 0;
+  align-items: start;         /* sticky sidebar 필수 조건 */
+  gap: 0 10px;
   margin-top: 8px;
-  max-width: var(--page-max-w);
+  margin-bottom: 24px;
+  padding: 0 max(var(--page-pad), calc((100vw - var(--page-max-w)) / 2 + var(--page-pad)));
+  max-width: 100%;
   width: 100%;
   justify-self: center;
+  box-sizing: border-box;
 }
 
 /* === 사이드바 === */
 .sidebar {
+  position: sticky;
+  top: 0;
+  max-height: 100vh;
   overflow-y: auto;
-  border-right: 1px solid var(--border);
-  background: var(--bg);
   display: flex;
   flex-direction: column;
   gap: 10px;
-  padding: 10px;
+  padding: 10px 0;
 }
 
 /* === 메인 영역 === */
 .main-area {
   display: flex;
   flex-direction: column;
-  overflow: hidden;
   background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  overflow: clip;             /* border-radius 클리핑, 스크롤 컨테이너 생성 안 함 */
+  min-width: 0;
 }
 
 /* === 카드 공통 === */
@@ -307,15 +317,12 @@ input[type="range"] {
 
 /* 탭 컨텐츠 영역 */
 .tab-content {
-  flex: 1;
-  overflow: hidden;
   display: flex;
   flex-direction: column;
 }
 
 .skill-tree-panel {
-  flex: 1;
-  overflow: auto;
+  overflow-x: auto;
   padding: 12px 16px;
   background: var(--bg);
 }
@@ -1107,10 +1114,8 @@ input[type="range"] {
 
 /* === 시뮬레이션 분석 패널 === */
 .analysis-panel {
-  flex: 1;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
 }
 
 .analysis-empty {
@@ -1125,8 +1130,6 @@ input[type="range"] {
 
 
 .analysis-content {
-  flex: 1;
-  overflow-y: auto;
   background: var(--bg);
 }
 
@@ -1720,8 +1723,6 @@ input[type="range"] {
 
 /* === 스킬 습득 탭 구조 === */
 .skill-tab-panel {
-  flex: 1;
-  overflow: hidden;
   display: flex;
   flex-direction: column;
 }
