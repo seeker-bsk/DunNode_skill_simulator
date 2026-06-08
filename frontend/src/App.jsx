@@ -1,11 +1,12 @@
 import { useState, useEffect, useCallback } from 'react';
 import { ThemeProvider } from './contexts/ThemeContext';
 import Header from './components/Header';
+import JobBanner from './components/JobBanner';
 import SkillTree from './components/SkillTree';
-import StatsPanel from './components/StatsPanel';
 import AnalysisPanel from './components/AnalysisPanel';
 import BloomPanel from './components/BloomPanel';
 import SkillListView from './components/SkillListView';
+import { DamageCard, SpCard, StatsCard, SimCard } from './components/StatsPanel';
 
 const TOTAL_SP = 19320;
 
@@ -26,24 +27,23 @@ function lockedSpCost(s) {
   return cost * lv;
 }
 
-function fmtCoef(v) {
-  if (!v) return '0';
-  return Math.round(v * 100).toLocaleString('ko-KR');
-}
-
 export default function App() {
-  const [jobs,        setJobs]        = useState([]);
-  const [selectedJob, setSelectedJob] = useState(null);
-  const [skills,      setSkills]      = useState([]);
-  const [stats,       setStats]       = useState(DEFAULT_STATS);
-  const [simDuration, setSimDuration] = useState(43);
-  const [result,      setResult]      = useState(null);
-  const [loading,     setLoading]     = useState(false);
-  const [treeLoading, setTreeLoading] = useState(false);
-  const [rightTab,    setRightTab]    = useState('tree');
-  const [toast,       setToast]       = useState(null); /* { msg, key } */
-  const [skillViewMode, setSkillViewMode] = useState('tree');
+  const [jobs,           setJobs]           = useState([]);
+  const [selectedJob,    setSelectedJob]    = useState(null);
+  const [characterName,  setCharacterName]  = useState(null); /* 캐릭터 검색 경유 시 닉네임 */
+  const [pendingLevels,  setPendingLevels]  = useState(null); /* 검색 후 적용할 스킬 레벨 */
+  const [skills,         setSkills]         = useState([]);
+  const [stats,          setStats]          = useState(DEFAULT_STATS);
+  const [simDuration,    setSimDuration]    = useState(43);
+  const [result,         setResult]         = useState(null);
+  const [loading,        setLoading]        = useState(false);
+  const [treeLoading,    setTreeLoading]    = useState(false);
+  const [baselineResult, setBaselineResult] = useState(null);  /* 캐릭터 검색 후 첫 시뮬 결과 */
+  const [mainTab,        setMainTab]        = useState('tree'); /* 'tree' | 'bloom' | 'sim' */
+  const [skillViewMode,  setSkillViewMode]  = useState('tree');
+  const [toast,          setToast]          = useState(null);
 
+  /* 직업 목록 로드 */
   useEffect(() => {
     fetch('/jobs')
       .then(r => r.json())
@@ -51,6 +51,7 @@ export default function App() {
       .catch(() => {});
   }, []);
 
+  /* 직업 변경 시 스킬 트리 로드 */
   useEffect(() => {
     if (!selectedJob) { setSkills([]); setResult(null); return; }
     setTreeLoading(true);
@@ -58,40 +59,42 @@ export default function App() {
     fetch(`/tree/${selectedJob.dataKey}`)
       .then(r => r.json())
       .then(data => {
-        setSkills(data.map(s => ({
+        let mapped = data.map(s => ({
           ...s,
           current_level: s.level_mode === 'auto_lv1_sp' && s.current_level === 0
-            ? 1
-            : s.current_level,
+            ? 1 : s.current_level,
           locked: false,
-        })));
+        }));
+        /* 캐릭터 검색 경유 시 스킬 레벨 일괄 적용 */
+        if (pendingLevels) {
+          const lvMap = new Map(pendingLevels.map(sl => [sl.skillId, sl.level]));
+          mapped = mapped.map(s => {
+            const lv = lvMap.get(s.skill_id);
+            return lv !== undefined ? { ...s, current_level: lv } : s;
+          });
+          setPendingLevels(null);
+        }
+        setSkills(mapped);
       })
       .catch(() => setSkills([]))
       .finally(() => setTreeLoading(false));
   }, [selectedJob]);
 
+  /* ── 핸들러 ── */
   const handleSkillLevelChange = useCallback((skillId, newLevel) => {
-    setSkills(prev =>
-      prev.map(s => s.skill_id === skillId ? { ...s, current_level: newLevel } : s)
-    );
+    setSkills(prev => prev.map(s => s.skill_id === skillId ? { ...s, current_level: newLevel } : s));
   }, []);
 
   const handleLockToggle = useCallback((skillId) => {
-    setSkills(prev =>
-      prev.map(s => s.skill_id === skillId ? { ...s, locked: !s.locked } : s)
-    );
+    setSkills(prev => prev.map(s => s.skill_id === skillId ? { ...s, locked: !s.locked } : s));
   }, []);
 
   const handleEnhancementChange = useCallback((skillId, type) => {
-    setSkills(prev =>
-      prev.map(s => s.skill_id === skillId ? { ...s, enhancement_type: type } : s)
-    );
+    setSkills(prev => prev.map(s => s.skill_id === skillId ? { ...s, enhancement_type: type } : s));
   }, []);
 
   const handleEvolutionChange = useCallback((skillId, type) => {
-    setSkills(prev =>
-      prev.map(s => s.skill_id === skillId ? { ...s, bloom_type: type } : s)
-    );
+    setSkills(prev => prev.map(s => s.skill_id === skillId ? { ...s, bloom_type: type } : s));
   }, []);
 
   const handleResetSkills = useCallback(() => {
@@ -105,6 +108,34 @@ export default function App() {
     }));
   }, []);
 
+  /* 직업 직접 선택 */
+  const handleJobChange = useCallback((job) => {
+    setCharacterName(null);
+    setPendingLevels(null);
+    setBaselineResult(null);
+    setSelectedJob(job);
+  }, []);
+
+  /* 캐릭터 검색으로 로드 */
+  const handleCharacterLoad = useCallback(({ job, characterName: name, skillLevels }) => {
+    setPendingLevels(skillLevels);
+    setCharacterName(name);
+    setBaselineResult(null);
+    setSelectedJob(job);
+    setToast({ msg: `${name}님의 스킬 트리를 불러왔습니다`, key: Date.now() });
+  }, []);
+
+  /* 직업 변경 ([변경] 버튼) */
+  const handleClear = useCallback(() => {
+    setSelectedJob(null);
+    setCharacterName(null);
+    setPendingLevels(null);
+    setBaselineResult(null);
+    setSkills([]);
+    setResult(null);
+  }, []);
+
+  /* 시뮬레이션 실행 */
   const handleSimulate = useCallback(async (autoOptimize = false) => {
     if (!selectedJob || skills.length === 0) return;
     setLoading(true);
@@ -113,10 +144,8 @@ export default function App() {
       let totalSpForRequest;
 
       if (autoOptimize) {
-        const lockedSpUsed = skills.reduce(
-          (acc, s) => acc + (s.locked ? lockedSpCost(s) : 0), 0
-        );
-        totalSpForRequest = TOTAL_SP - lockedSpUsed;
+        const lockedSpUsed = skills.reduce((acc, s) => acc + (s.locked ? lockedSpCost(s) : 0), 0);
+        totalSpForRequest  = TOTAL_SP - lockedSpUsed;
         requestSkills = skills.map(s => {
           if (s.locked)              return { ...s, master_level: s.current_level };
           if (s.level_mode === 'sp') return { ...s, current_level: 0 };
@@ -153,27 +182,25 @@ export default function App() {
 
       if (autoOptimize && Array.isArray(data.optimization?.skill_levels)) {
         const lvMap   = new Map(data.optimization.skill_levels.map(sl => [sl.skill_id, sl.current_level]));
-        const evolMap = new Map((data.optimization?.evolutions    ?? []).map(e => [e.skill_id, e.bloom_type]));
-        const enhMap  = new Map((data.optimization?.enhancements  ?? []).map(e => [e.skill_id, e.enhancement_type]));
-        setSkills(prev =>
-          prev.map(s => {
-            if (s.locked) return s;
-            const lv = lvMap.get(s.skill_id);
-            return {
-              ...s,
-              current_level:    lv !== undefined ? lv : s.current_level,
-              bloom_type:       evolMap.get(s.skill_id) ?? 0,
-              enhancement_type: enhMap.get(s.skill_id)  ?? 0,
-            };
-          })
-        );
+        const evolMap = new Map((data.optimization?.evolutions   ?? []).map(e => [e.skill_id, e.bloom_type]));
+        const enhMap  = new Map((data.optimization?.enhancements ?? []).map(e => [e.skill_id, e.enhancement_type]));
+        setSkills(prev => prev.map(s => {
+          if (s.locked) return s;
+          const lv = lvMap.get(s.skill_id);
+          return {
+            ...s,
+            current_level:    lv !== undefined ? lv : s.current_level,
+            bloom_type:       evolMap.get(s.skill_id) ?? 0,
+            enhancement_type: enhMap.get(s.skill_id)  ?? 0,
+          };
+        }));
       }
 
       setResult({ ...data, _key: Date.now() });
-      setRightTab('analysis');
-      if (autoOptimize) {
-        setToast({ msg: '스킬 자동 찍기가 완료되었습니다', key: Date.now() });
-      }
+      /* 캐릭터 검색 후 첫 시뮬레이션 → 베이스라인 저장 */
+      setBaselineResult(prev => (characterName && !prev) ? { ...data } : prev);
+      setMainTab('sim');
+      if (autoOptimize) setToast({ msg: '스킬 자동 찍기가 완료되었습니다', key: Date.now() });
     } catch (err) {
       setResult({ error: err?.error ?? 'network_error' });
     } finally {
@@ -181,101 +208,101 @@ export default function App() {
     }
   }, [selectedJob, skills, stats, simDuration]);
 
+  const canRun = !loading && !!selectedJob && skills.length > 0;
+
   return (
     <ThemeProvider>
-      <div className="app">
-        <Header
+      <div className={`app${selectedJob ? '' : ' no-job'}`}>
+
+        {/* ── 헤더 ── */}
+        <Header />
+
+        {/* ── 직업 배너 (선택 진입점 or 직업 정보) ── */}
+        <JobBanner
           jobs={jobs}
           selectedJob={selectedJob}
-          onJobChange={job => { setSelectedJob(job); }}
+          characterName={characterName}
+          onJobChange={handleJobChange}
+          onCharacterLoad={handleCharacterLoad}
+          onClear={handleClear}
         />
-        <div className="main-content">
 
-          {/* ── 왼쪽 패널: 스펙 조정 + 시뮬레이션 실행 + 결과 요약 ── */}
-          <aside className="left-panel">
-            <StatsPanel
-              stats={stats}
-              skills={skills}
-              totalSp={TOTAL_SP}
-              onStatsChange={setStats}
-              simDuration={simDuration}
-              onSimDurationChange={setSimDuration}
-            />
-
-            <div className="sim-actions">
-              <button
-                className="btn-simulate"
-                onClick={() => handleSimulate(false)}
-                disabled={loading || !selectedJob || skills.length === 0}
-              >
-                {loading ? '시뮬레이션 중…' : '시뮬레이션'}
-              </button>
-              <button
-                className="btn-optimize"
-                onClick={() => handleSimulate(true)}
-                disabled={loading || !selectedJob || skills.length === 0}
-              >
-                자동 최적화
-              </button>
-            </div>
-
-            {result && (
-              <div className="result-summary">
-                {result.error ? (
-                  <div className="result-error">{result.error}</div>
-                ) : (
-                  <>
-                    <span className="result-total-label">총 데미지 계수</span>
-                    <div className="result-total">
-                      {fmtCoef(result.total_damage)}
-                      <span className="result-total-unit">%</span>
-                    </div>
-                  </>
-                )}
-              </div>
-            )}
-          </aside>
-
-          {/* ── 오른쪽 패널: 탭 (스킬 트리 | 시뮬레이션 분석) ── */}
-          <div className="right-panel">
-            <div className="main-tab-bar">
-              {[['tree', '스킬 습득'], ['bloom', '스킬 개화'], ['analysis', '시뮬레이션 분석']].map(([key, label]) => (
-                <button
-                  key={key}
-                  className={`main-tab-btn${rightTab === key ? ' active' : ''}`}
-                  onClick={() => setRightTab(key)}
-                >
-                  {label}
-                </button>
+        {/* ── 전체 폭 탭 바 (배너 아래, 직업 선택 후) ── */}
+        {selectedJob && (
+          <div className="page-tab-bar">
+            <div className="page-tab-inner">
+              {[
+                ['tree',  '스킬 트리'],
+                ['bloom', '스킬 개화'],
+                ['sim',   '시뮬레이션'],
+              ].map(([key, label]) => (
+                <button key={key}
+                  className={`page-tab-btn${mainTab === key ? ' active' : ''}`}
+                  onClick={() => setMainTab(key)}
+                >{label}</button>
               ))}
             </div>
+          </div>
+        )}
 
-            <div className="tab-content">
-              {rightTab === 'tree' && (
-                <div className="skill-tab-panel">
-                  {treeLoading ? (
-                    <div className="loading-center">스킬 데이터 불러오는 중…</div>
-                  ) : !selectedJob ? (
-                    <div className="loading-center">위에서 직업을 선택하세요</div>
-                  ) : skills.length === 0 ? (
-                    <div className="loading-center">스킬 데이터 없음</div>
-                  ) : (
-                    <>
-                      <div className="skill-view-toolbar">
-                        {[['tree', '트리'], ['list', '목록']].map(([mode, label]) => (
-                          <button key={mode}
-                            className={`view-toggle-btn${skillViewMode === mode ? ' active' : ''}`}
-                            onClick={() => setSkillViewMode(mode)}
-                          >{label}</button>
-                        ))}
-                        <div className="toolbar-spacer" />
-                        <button className="skill-reset-btn" onClick={handleResetSkills}>
-                          초기화
-                        </button>
-                      </div>
-                      {skillViewMode === 'tree' ? (
-                        <div className="skill-tree-panel">
-                          <SkillTree
+        {/* ── 콘텐츠 영역 (직업 선택 후만 렌더) ── */}
+        {selectedJob && (
+          <div className="content-area">
+
+            {/* 사이드바 */}
+            <aside className="sidebar">
+              <DamageCard result={result} baselineResult={baselineResult} characterName={characterName} />
+              <SpCard skills={skills} totalSp={TOTAL_SP} />
+              <StatsCard stats={stats} onStatsChange={setStats} />
+              <SimCard
+                simDuration={simDuration}
+                onSimDurationChange={setSimDuration}
+                loading={loading}
+                canRun={canRun}
+                onSimulate={handleSimulate}
+                result={result}
+              />
+            </aside>
+
+            {/* 메인 영역 */}
+            <div className="main-area">
+              <div className="tab-content">
+
+                {/* 스킬 트리 탭 */}
+                {mainTab === 'tree' && (
+                  <div className="skill-tab-panel">
+                    {treeLoading ? (
+                      <div className="loading-center">스킬 데이터 불러오는 중…</div>
+                    ) : skills.length === 0 ? (
+                      <div className="loading-center">스킬 데이터 없음</div>
+                    ) : (
+                      <>
+                        <div className="skill-view-toolbar">
+                          {[['tree', '트리'], ['list', '목록']].map(([mode, label]) => (
+                            <button key={mode}
+                              className={`view-toggle-btn${skillViewMode === mode ? ' active' : ''}`}
+                              onClick={() => setSkillViewMode(mode)}
+                            >{label}</button>
+                          ))}
+                          <div className="toolbar-spacer" />
+                          <button className="skill-reset-btn" onClick={handleResetSkills}>
+                            초기화
+                          </button>
+                        </div>
+                        {skillViewMode === 'tree' ? (
+                          <div className="skill-tree-panel">
+                            <SkillTree
+                              skills={skills}
+                              selectedJob={selectedJob}
+                              stats={stats}
+                              onSkillLevelChange={handleSkillLevelChange}
+                              onLockToggle={handleLockToggle}
+                              onEnhancementChange={handleEnhancementChange}
+                              onEvolutionChange={handleEvolutionChange}
+                            />
+                          </div>
+                        ) : (
+                          <SkillListView
                             skills={skills}
                             selectedJob={selectedJob}
                             stats={stats}
@@ -284,58 +311,48 @@ export default function App() {
                             onEnhancementChange={handleEnhancementChange}
                             onEvolutionChange={handleEvolutionChange}
                           />
-                        </div>
-                      ) : (
-                        <SkillListView
-                          skills={skills}
-                          selectedJob={selectedJob}
-                          stats={stats}
-                          onSkillLevelChange={handleSkillLevelChange}
-                          onLockToggle={handleLockToggle}
-                          onEnhancementChange={handleEnhancementChange}
-                          onEvolutionChange={handleEvolutionChange}
-                        />
-                      )}
-                    </>
-                  )}
-                </div>
-              )}
-              {rightTab === 'bloom' && (
-                !selectedJob ? (
-                  <div className="loading-center">위에서 직업을 선택하세요</div>
-                ) : skills.length === 0 ? (
-                  <div className="loading-center">스킬 데이터 없음</div>
-                ) : (
-                  <BloomPanel
-                    skills={skills}
+                        )}
+                      </>
+                    )}
+                  </div>
+                )}
+
+                {/* 스킬 개화 탭 */}
+                {mainTab === 'bloom' && (
+                  skills.length === 0 ? (
+                    <div className="loading-center">스킬 데이터 없음</div>
+                  ) : (
+                    <BloomPanel
+                      skills={skills}
+                      selectedJob={selectedJob}
+                      onEnhancementChange={handleEnhancementChange}
+                      onEvolutionChange={handleEvolutionChange}
+                    />
+                  )
+                )}
+
+                {/* 시뮬레이션 탭 */}
+                {mainTab === 'sim' && (
+                  <AnalysisPanel
+                    result={result}
+                    simDuration={simDuration}
                     selectedJob={selectedJob}
-                    onEnhancementChange={handleEnhancementChange}
-                    onEvolutionChange={handleEvolutionChange}
                   />
-                )
-              )}
-              {rightTab === 'analysis' && (
-                <AnalysisPanel
-                  result={result}
-                  simDuration={simDuration}
-                  selectedJob={selectedJob}
-                />
-              )}
+                )}
+
+              </div>
             </div>
+
           </div>
+        )}
 
-        </div>
-
-        {/* ── 토스트 알림 ── */}
+        {/* ── 토스트 ── */}
         {toast && (
-          <div
-            key={toast.key}
-            className="toast"
-            onAnimationEnd={() => setToast(null)}
-          >
+          <div key={toast.key} className="toast" onAnimationEnd={() => setToast(null)}>
             {toast.msg}
           </div>
         )}
+
       </div>
     </ThemeProvider>
   );

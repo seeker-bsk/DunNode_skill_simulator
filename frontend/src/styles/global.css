@@ -1,5 +1,12 @@
-/* === 다크 테마 (기본) — Direction A: 고밀도 데이터 패널 === */
+/* === 다크 테마 (기본) === */
 :root {
+  --radius-card: 8px;
+  --shadow-card: 0 1px 3px rgba(0,0,0,.18), 0 1px 2px rgba(0,0,0,.12);
+  --sidebar-w: 280px;
+  --banner-h: 280px;
+  --page-max-w: 1380px;
+  --page-pad: 28px;
+  --bg-outer: #050507;
   --bg: #09090b; /* zinc-950 */
   --bg-panel: #111113;
   --surface: #1c1c1f; /* zinc-900 */
@@ -33,8 +40,10 @@
   --bloom-blue-bg: rgba(96, 165, 250, 0.12);
 }
 
-/* === 라이트 테마 (웜 스톤 + 앰버) === */
+/* === 라이트 테마 === */
 [data-theme="light"] {
+  --shadow-card: 0 1px 3px rgba(0,0,0,.08), 0 1px 2px rgba(0,0,0,.05);
+  --bg-outer: #e4e4e7;
   --bg: #fafaf9; /* stone-50 */
   --bg-panel: #f5f5f4; /* stone-100 */
   --surface: #ffffff;
@@ -84,8 +93,8 @@ body {
     system-ui,
     -apple-system,
     sans-serif;
-  font-size: 13px;
-  background: var(--bg);
+  font-size: 14px;
+  background: var(--bg-outer);
   color: var(--text);
 }
 
@@ -112,12 +121,12 @@ body {
 button {
   cursor: pointer;
   font-family: inherit;
-  font-size: 11px;
+  font-size: 12px;
   border: 1px solid var(--btn-border);
   background: var(--btn-bg);
   color: var(--text);
-  border-radius: 2px;
-  padding: 3px 6px;
+  border-radius: 3px;
+  padding: 5px 10px;
   line-height: 1;
   transition:
     background 100ms,
@@ -138,11 +147,11 @@ input[type="text"],
 select {
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 2px;
+  border-radius: 4px;
   color: var(--text);
   font-family: inherit;
-  font-size: 12px;
-  padding: 4px 6px;
+  font-size: 13px;
+  padding: 6px 8px;
 }
 input:focus,
 select:focus {
@@ -159,49 +168,92 @@ input[type="range"] {
 /* === 앱 레이아웃 === */
 .app {
   display: grid;
-  grid-template-rows: 48px 1fr;
+  grid-template-rows: 44px var(--banner-h) auto 1fr;
   height: 100vh;
   overflow: hidden;
+  background: var(--bg-outer);
 }
 
-.main-content {
+/* 직업 선택 전: banner가 나머지 채움 */
+.app.no-job {
+  grid-template-rows: 44px 1fr;
+}
+
+/* 배너 아래 콘텐츠 영역 — 센터링 */
+.content-area {
   display: grid;
-  grid-template-columns: 268px 1fr;
+  grid-template-columns: var(--sidebar-w) 1fr;
   overflow: hidden;
+  min-height: 0;
+  margin-top: 8px;
+  max-width: var(--page-max-w);
+  width: 100%;
+  justify-self: center;
 }
 
-/* 왼쪽 패널: 스펙 조정 + 시뮬레이션 + 결과 요약 */
-.left-panel {
+/* === 사이드바 === */
+.sidebar {
   overflow-y: auto;
   border-right: 1px solid var(--border);
-  background: var(--bg-panel);
+  background: var(--bg);
   display: flex;
   flex-direction: column;
-  gap: 0;
+  gap: 10px;
+  padding: 10px;
 }
 
-/* 오른쪽 패널: 탭 구조 */
-.right-panel {
+/* === 메인 영역 === */
+.main-area {
   display: flex;
   flex-direction: column;
   overflow: hidden;
   background: var(--bg);
 }
 
-/* 탭 바 */
-.main-tab-bar {
-  display: flex;
-  border-bottom: 1px solid var(--border);
+/* === 카드 공통 === */
+.card {
   background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  overflow: hidden;
   flex-shrink: 0;
 }
-.main-tab-btn {
-  padding: 0 16px;
-  height: 36px;
+.card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border);
+}
+.card-title {
   font-size: 11px;
   font-weight: 700;
-  letter-spacing: 0.04em;
+  color: var(--text-muted);
   text-transform: uppercase;
+  letter-spacing: .07em;
+}
+.card-body {
+  padding: 13px 16px;
+}
+
+/* === 전체 폭 페이지 탭 바 (배너 아래) === */
+.page-tab-bar {
+  background: var(--bg-panel);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.page-tab-inner {
+  display: flex;
+  max-width: var(--page-max-w);
+  width: 100%;
+  margin: 0 auto;
+  padding: 0 max(var(--page-pad), calc((100vw - var(--page-max-w)) / 2 + var(--page-pad)));
+}
+.page-tab-btn {
+  padding: 0 22px;
+  height: 48px;
+  font-size: 14px;
+  font-weight: 700;
   background: none;
   border: none;
   border-bottom: 2px solid transparent;
@@ -209,9 +261,39 @@ input[type="range"] {
   color: var(--text-muted);
   cursor: pointer;
   margin-bottom: -1px;
-  transition:
-    color 120ms,
-    border-color 120ms;
+  transition: color 120ms, border-color 120ms;
+}
+.page-tab-btn:hover:not(:disabled) {
+  color: var(--text);
+  background: none;
+  border-color: var(--border-strong);
+}
+.page-tab-btn.active {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+}
+
+/* === 탭 바 (메인 영역 — 현재 미사용, 하위호환 유지) === */
+.main-tab-bar {
+  display: flex;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-panel);
+  flex-shrink: 0;
+}
+.main-tab-btn {
+  padding: 0 20px;
+  height: 44px;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  border-radius: 0;
+  color: var(--text-muted);
+  cursor: pointer;
+  margin-bottom: -1px;
+  transition: color 120ms, border-color 120ms;
 }
 .main-tab-btn:hover:not(:disabled) {
   color: var(--text);
@@ -238,19 +320,56 @@ input[type="range"] {
   background: var(--bg);
 }
 
-/* 시뮬레이션 실행 버튼 영역 */
+/* 시뮬레이션 실행 버튼 영역 (사이드바용) */
 .sim-actions {
-  padding: 10px 12px;
   display: flex;
   flex-direction: column;
   gap: 5px;
-  border-bottom: 1px solid var(--border);
 }
 
-/* 결과 요약 (왼쪽 패널 하단) */
+/* 결과 요약 */
 .result-summary {
-  padding: 12px 12px 14px;
+  padding: 4px 0 2px;
 }
+
+/* === 데미지 계수 카드 === */
+.damage-card-body {
+  text-align: center;
+  padding: 20px 16px 16px;
+}
+.damage-value {
+  font-size: 26px;
+  font-weight: 800;
+  color: var(--text-heading);
+  line-height: 1.1;
+  margin-bottom: 8px;
+  letter-spacing: -0.01em;
+}
+.damage-unit {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--text-muted);
+  margin-left: 2px;
+}
+.damage-empty {
+  color: var(--text-muted);
+}
+.damage-delta {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+.damage-delta--pos { color: var(--success); }
+.damage-delta--neg { color: var(--danger); }
+.delta-icon {
+  font-size: 9px;
+  line-height: 1;
+}
+
 
 /* === 로딩/빈 상태 === */
 .loading-center {
@@ -268,36 +387,243 @@ input[type="range"] {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 0 14px;
+  /* 반응형 패딩: 넓은 화면에서 콘텐츠가 page-max-w 안에 머뭄 */
+  padding: 0 max(var(--page-pad), calc((100vw - var(--page-max-w)) / 2 + var(--page-pad)));
   background: var(--bg-panel);
   border-bottom: 1px solid var(--border);
   flex-shrink: 0;
+  z-index: 10;
 }
 .header-title {
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 800;
   color: var(--accent);
   white-space: nowrap;
   letter-spacing: 0.06em;
   text-transform: uppercase;
 }
-.header-job-select {
-  flex: 1;
-  max-width: 240px;
-}
-.header-job-select select {
-  width: 100%;
-  font-size: 12px;
-  padding: 5px 8px;
-}
 .theme-toggle {
   margin-left: auto;
   background: none;
   border: 1px solid var(--border);
-  border-radius: 2px;
-  padding: 4px 10px;
+  border-radius: 6px;
+  padding: 6px 12px;
+  font-size: 14px;
+  color: var(--text-muted);
+}
+
+/* === 직업 배너 === */
+.job-banner {
+  position: relative;
+  flex-shrink: 0;
+  overflow: hidden;
+  background: var(--bg-panel);
+  border-bottom: 1px solid var(--border);
+}
+
+/* 선택 화면 상태 */
+.job-banner--select {
+  height: auto;
+  min-height: var(--banner-h);
+}
+.banner-select-tabs {
+  display: flex;
+  gap: 0;
+  border-bottom: 1px solid var(--border);
+  padding: 0 max(var(--page-pad), calc((100vw - var(--page-max-w)) / 2 + var(--page-pad)));
+  background: var(--bg-panel);
+}
+.banner-tab-btn {
+  padding: 0 16px;
+  height: 40px;
+  font-size: 13px;
+  font-weight: 700;
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  border-radius: 0;
+  color: var(--text-muted);
+  margin-bottom: -1px;
+  transition: color 120ms, border-color 120ms;
+}
+.banner-tab-btn:hover:not(:disabled) {
+  color: var(--text);
+  background: none;
+  border-color: var(--border-strong);
+}
+.banner-tab-btn.active {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+}
+.banner-select-body {
+  padding: 16px max(var(--page-pad), calc((100vw - var(--page-max-w)) / 2 + var(--page-pad)));
+}
+
+/* 캐릭터 검색 폼 */
+.banner-search-form {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.banner-search-form select {
+  width: 100px;
+  font-size: 12px;
+}
+.banner-search-form input {
+  flex: 1;
+  min-width: 160px;
+  font-size: 12px;
+}
+.banner-search-btn {
+  padding: 5px 14px;
+  font-size: 11px;
+  font-weight: 700;
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #09090b;
+  border-radius: 4px;
+}
+.banner-search-btn:hover:not(:disabled) {
+  background: var(--accent-hover);
+  border-color: var(--accent-hover);
+}
+.banner-search-results {
+  margin-top: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  max-height: 180px;
+  overflow-y: auto;
+}
+.banner-search-result-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border-radius: 4px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  cursor: pointer;
+  font-size: 12px;
+  transition: background 100ms, border-color 100ms;
+  text-align: left;
+}
+.banner-search-result-item:hover {
+  background: var(--surface-hover);
+  border-color: var(--accent);
+}
+.banner-result-name { font-weight: 700; color: var(--text-heading); }
+.banner-result-job  { color: var(--text-muted); font-size: 11px; }
+.banner-result-server { color: var(--text-muted); font-size: 10px; margin-left: auto; }
+.banner-search-msg {
+  margin-top: 8px;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+.banner-search-msg.error { color: var(--danger); }
+
+/* 직업 카드 그리드 */
+.job-card-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.job-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  padding: 10px 16px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  cursor: pointer;
+  transition: background 100ms, border-color 100ms;
+  min-width: 100px;
+}
+.job-card:hover {
+  background: var(--surface-hover);
+  border-color: var(--accent);
+}
+.job-card-char { font-size: 11px; color: var(--text-muted); }
+.job-card-name { font-size: 13px; font-weight: 700; color: var(--text-heading); }
+
+/* 직업 선택됨 상태 */
+.job-banner--filled {
+  height: var(--banner-h);
+  position: relative;
+  overflow: hidden;
+  background: var(--bg-panel);
+}
+
+/* 캐릭터 아트: 가로 중앙, 세로 상단 정렬 — 머리부터 상반신 표시 */
+.banner-job-art {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  transform: translateX(-50%);
+  top: -20%;
+  height: 210%;
+  object-fit: contain;
+  object-position: top center;
+  pointer-events: none;
+  opacity: .95;
+  /* 하단 fade — 발 아래쪽만 자연스럽게 소실 */
+  mask-image: linear-gradient(to bottom, black 55%, rgba(0,0,0,.6) 80%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to bottom, black 55%, rgba(0,0,0,.6) 80%, transparent 100%);
+}
+
+/* 콘텐츠 래퍼: page-max-w 내 센터링, 아트 위에 텍스트 배치 */
+.banner-filled-wrap {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: flex;
+  align-items: flex-end;          /* 텍스트를 하단 정렬 */
+  max-width: var(--page-max-w);
+  width: 100%;
+  margin: 0 auto;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 0 var(--page-pad) 28px;
+  /* 좌측 그라데이션으로 텍스트 가독성 확보 */
+  background: linear-gradient(
+    to right,
+    color-mix(in srgb, var(--bg-panel) 85%, transparent) 0%,
+    color-mix(in srgb, var(--bg-panel) 40%, transparent) 30%,
+    transparent 60%
+  );
+}
+
+.banner-info {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.banner-char-name {
+  font-size: 12px;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+.banner-job-name {
+  font-size: 28px;
+  font-weight: 800;
+  color: var(--text-heading);
+  line-height: 1.1;
+}
+.banner-char-type {
   font-size: 13px;
   color: var(--text-muted);
+}
+.banner-change-btn {
+  position: absolute;
+  top: 20px;
+  right: var(--page-pad);
+  font-size: 12px;
+  font-weight: 700;
+  padding: 7px 16px;
+  border-radius: 6px;
 }
 
 /* === 섹션 헤더 공통 (좌측 골드 바) === */
@@ -522,6 +848,39 @@ input[type="range"] {
   padding-right: 6px;
 }
 
+/* === SP 카드 (사이드바) === */
+.sp-card-body {
+  padding: 10px 12px 12px;
+}
+.sp-bar-track {
+  height: 6px;
+  background: var(--surface);
+  border-radius: 99px;
+  overflow: hidden;
+  margin-bottom: 6px;
+}
+.sp-bar-fill {
+  height: 100%;
+  border-radius: 99px;
+  transition: width 200ms;
+}
+.sp-bar-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
+}
+.sp-used   { font-weight: 700; color: var(--text-heading); }
+.sp-total  { color: var(--text-muted); }
+.sp-badge  {
+  font-size: 10px;
+  font-weight: 700;
+  font-family: var(--mono);
+  color: var(--success);
+}
+.sp-badge--over { color: var(--danger); }
+
 /* === 스탯 패널 === */
 .stats-panel {
   padding: 12px 12px 10px;
@@ -548,7 +907,7 @@ input[type="range"] {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: 11px;
+  font-size: 12px;
   color: var(--text-muted);
 }
 .stat-value {
@@ -556,13 +915,13 @@ input[type="range"] {
   font-weight: 700;
   font-family: var(--mono);
   font-variant-numeric: tabular-nums;
-  font-size: 12px;
+  font-size: 13px;
 }
 .stat-checkbox-row {
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 12px;
+  font-size: 13px;
   margin-bottom: 8px;
 }
 .sp-info {
@@ -608,15 +967,15 @@ input[type="range"] {
 }
 .btn-simulate {
   flex: 1;
-  padding: 8px 0;
-  font-size: 11px;
+  padding: 11px 0;
+  font-size: 13px;
   font-weight: 700;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.03em;
   text-transform: uppercase;
   background: var(--accent);
   color: #09090b;
   border: none;
-  border-radius: 2px;
+  border-radius: 6px;
   transition:
     background 120ms,
     opacity 120ms;
@@ -633,15 +992,15 @@ input[type="range"] {
 
 .btn-optimize {
   flex: 1;
-  padding: 8px 0;
-  font-size: 11px;
+  padding: 11px 0;
+  font-size: 13px;
   font-weight: 700;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.03em;
   text-transform: uppercase;
   background: transparent;
   color: var(--accent);
   border: 1px solid var(--accent);
-  border-radius: 2px;
+  border-radius: 6px;
   transition: background 120ms;
 }
 .btn-optimize:hover:not(:disabled) {
@@ -764,39 +1123,6 @@ input[type="range"] {
   letter-spacing: 0.03em;
 }
 
-.analysis-tab-bar {
-  display: flex;
-  border-bottom: 1px solid var(--border);
-  background: var(--bg-panel);
-  flex-shrink: 0;
-}
-.analysis-tab-btn {
-  padding: 0 14px;
-  height: 34px;
-  font-size: 10.5px;
-  font-weight: 700;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  background: none;
-  border: none;
-  border-bottom: 2px solid transparent;
-  border-radius: 0;
-  color: var(--text-muted);
-  cursor: pointer;
-  margin-bottom: -1px;
-  transition:
-    color 120ms,
-    border-color 120ms;
-}
-.analysis-tab-btn:hover:not(:disabled) {
-  color: var(--text);
-  background: none;
-  border-color: var(--border-strong);
-}
-.analysis-tab-btn.active {
-  color: var(--accent);
-  border-bottom-color: var(--accent);
-}
 
 .analysis-content {
   flex: 1;
@@ -1410,12 +1736,12 @@ input[type="range"] {
   flex-shrink: 0;
 }
 .view-toggle-btn {
-  padding: 6px 18px;
-  font-size: 11px;
+  padding: 7px 20px;
+  font-size: 12px;
   font-weight: 700;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
-  border-radius: 2px;
+  border-radius: 4px;
   border: 1px solid var(--border);
   background: transparent;
   color: var(--text-muted);
@@ -1427,10 +1753,10 @@ input[type="range"] {
 }
 .toolbar-spacer { flex: 1; }
 .skill-reset-btn {
-  padding: 5px 12px;
-  font-size: 11px;
+  padding: 7px 14px;
+  font-size: 12px;
   font-weight: 700;
-  border-radius: 2px;
+  border-radius: 4px;
   border: 1px solid var(--border);
   background: transparent;
   color: var(--text-muted);

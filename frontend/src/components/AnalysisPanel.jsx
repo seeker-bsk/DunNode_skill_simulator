@@ -374,11 +374,11 @@ export default function AnalysisPanel({ result, simDuration, selectedJob }) {
 
   return (
     <div className="analysis-panel">
-      <div className="analysis-tab-bar">
+      <div className="skill-view-toolbar">
         {[['stats', '스킬 통계'], ['timeline', '타임라인']].map(([key, label]) => (
           <button
             key={key}
-            className={`analysis-tab-btn${innerTab === key ? ' active' : ''}`}
+            className={`view-toggle-btn${innerTab === key ? ' active' : ''}`}
             onClick={() => setInnerTab(key)}
           >
             {label}
