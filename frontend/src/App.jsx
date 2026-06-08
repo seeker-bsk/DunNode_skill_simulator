@@ -4,6 +4,8 @@ import Header from './components/Header';
 import SkillTree from './components/SkillTree';
 import StatsPanel from './components/StatsPanel';
 import AnalysisPanel from './components/AnalysisPanel';
+import BloomPanel from './components/BloomPanel';
+import SkillListView from './components/SkillListView';
 
 const TOTAL_SP = 19320;
 
@@ -40,6 +42,7 @@ export default function App() {
   const [treeLoading, setTreeLoading] = useState(false);
   const [rightTab,    setRightTab]    = useState('tree');
   const [toast,       setToast]       = useState(null); /* { msg, key } */
+  const [skillViewMode, setSkillViewMode] = useState('tree');
 
   useEffect(() => {
     fetch('/jobs')
@@ -77,6 +80,29 @@ export default function App() {
     setSkills(prev =>
       prev.map(s => s.skill_id === skillId ? { ...s, locked: !s.locked } : s)
     );
+  }, []);
+
+  const handleEnhancementChange = useCallback((skillId, type) => {
+    setSkills(prev =>
+      prev.map(s => s.skill_id === skillId ? { ...s, enhancement_type: type } : s)
+    );
+  }, []);
+
+  const handleEvolutionChange = useCallback((skillId, type) => {
+    setSkills(prev =>
+      prev.map(s => s.skill_id === skillId ? { ...s, bloom_type: type } : s)
+    );
+  }, []);
+
+  const handleResetSkills = useCallback(() => {
+    if (!window.confirm('잠금되지 않은 모든 스킬의 레벨을 초기화합니다.')) return;
+    setSkills(prev => prev.map(s => {
+      if (s.locked) return s;
+      const lm = s.level_mode;
+      if (lm === 'auto_char' || lm === 'auto_every5') return s;
+      if (lm === 'auto_lv1_sp') return { ...s, current_level: 1 };
+      return { ...s, current_level: 0 };
+    }));
   }, []);
 
   const handleSimulate = useCallback(async (autoOptimize = false) => {
@@ -213,7 +239,7 @@ export default function App() {
           {/* ── 오른쪽 패널: 탭 (스킬 트리 | 시뮬레이션 분석) ── */}
           <div className="right-panel">
             <div className="main-tab-bar">
-              {[['tree', '스킬 트리'], ['analysis', '시뮬레이션 분석']].map(([key, label]) => (
+              {[['tree', '스킬 습득'], ['bloom', '스킬 개화'], ['analysis', '시뮬레이션 분석']].map(([key, label]) => (
                 <button
                   key={key}
                   className={`main-tab-btn${rightTab === key ? ' active' : ''}`}
@@ -226,7 +252,7 @@ export default function App() {
 
             <div className="tab-content">
               {rightTab === 'tree' && (
-                <div className="skill-tree-panel">
+                <div className="skill-tab-panel">
                   {treeLoading ? (
                     <div className="loading-center">스킬 데이터 불러오는 중…</div>
                   ) : !selectedJob ? (
@@ -234,15 +260,59 @@ export default function App() {
                   ) : skills.length === 0 ? (
                     <div className="loading-center">스킬 데이터 없음</div>
                   ) : (
-                    <SkillTree
-                      skills={skills}
-                      selectedJob={selectedJob}
-                      stats={stats}
-                      onSkillLevelChange={handleSkillLevelChange}
-                      onLockToggle={handleLockToggle}
-                    />
+                    <>
+                      <div className="skill-view-toolbar">
+                        {[['tree', '트리'], ['list', '목록']].map(([mode, label]) => (
+                          <button key={mode}
+                            className={`view-toggle-btn${skillViewMode === mode ? ' active' : ''}`}
+                            onClick={() => setSkillViewMode(mode)}
+                          >{label}</button>
+                        ))}
+                        <div className="toolbar-spacer" />
+                        <button className="skill-reset-btn" onClick={handleResetSkills}>
+                          초기화
+                        </button>
+                      </div>
+                      {skillViewMode === 'tree' ? (
+                        <div className="skill-tree-panel">
+                          <SkillTree
+                            skills={skills}
+                            selectedJob={selectedJob}
+                            stats={stats}
+                            onSkillLevelChange={handleSkillLevelChange}
+                            onLockToggle={handleLockToggle}
+                            onEnhancementChange={handleEnhancementChange}
+                            onEvolutionChange={handleEvolutionChange}
+                          />
+                        </div>
+                      ) : (
+                        <SkillListView
+                          skills={skills}
+                          selectedJob={selectedJob}
+                          stats={stats}
+                          onSkillLevelChange={handleSkillLevelChange}
+                          onLockToggle={handleLockToggle}
+                          onEnhancementChange={handleEnhancementChange}
+                          onEvolutionChange={handleEvolutionChange}
+                        />
+                      )}
+                    </>
                   )}
                 </div>
+              )}
+              {rightTab === 'bloom' && (
+                !selectedJob ? (
+                  <div className="loading-center">위에서 직업을 선택하세요</div>
+                ) : skills.length === 0 ? (
+                  <div className="loading-center">스킬 데이터 없음</div>
+                ) : (
+                  <BloomPanel
+                    skills={skills}
+                    selectedJob={selectedJob}
+                    onEnhancementChange={handleEnhancementChange}
+                    onEvolutionChange={handleEvolutionChange}
+                  />
+                )
               )}
               {rightTab === 'analysis' && (
                 <AnalysisPanel

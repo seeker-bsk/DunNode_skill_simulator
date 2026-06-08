@@ -59,11 +59,11 @@ float get_final_cooldown(const Skill* s, float combined_cdr) {
     return base_cd * factor;
 }
 
-/* bloom_options[bloom_type-1].cast_time이 0이면 base cast_time 사용 */
+/* bloom_options[bloom_type-1].cast_time이 -1이면 base cast_time 사용, 0 이상이면 그 값 사용 (0 = 즉시시전) */
 float get_cast_time(const Skill* s) {
     if (s->bloom_type >= 1 && s->bloom_type <= 2) {
         float ct = s->bloom_options[s->bloom_type - 1].cast_time;
-        if (ct > 0.0f) return ct;
+        if (ct >= 0.0f) return ct;
     }
     return s->cast_time;
 }

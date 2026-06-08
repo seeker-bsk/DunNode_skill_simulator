@@ -120,7 +120,7 @@ typedef struct Skill {
 
     /* 스킬 개화 (bloom/evolution) */
     int   bloom_type;             // 0: 없음 / 1: 개화1 선택 / 2: 개화2 선택
-    float bloomed_cast_time;      // bloom_type != 0일 때 시전 시간 (0이면 미변경)
+    float bloomed_cast_time;      // bloom_type != 0일 때 시전 시간 (-1이면 미변경, 0이면 즉시시전)
     float bloomed_damage_mult;    // bloom_type != 0일 때 데미지 배율 (0이면 미변경)
     float bloomed_cooldown;       // bloom_type != 0일 때 쿨타임 (0이면 미변경)
 
@@ -579,6 +579,64 @@ GET https://api.neople.co.kr/df/servers/{serverId}/characters/{characterId}/skil
 
 ---
 
+## 스킬 툴팁 + 개화/강화 선택 UI (M10)
+
+스킬 노드에 마우스를 600ms 이상 올리면 포털 기반 툴팁을 표시한다.
+툴팁 안에서 스킬 개화(bloom_type)와 강화(enhancement_type)를 직접 선택할 수 있다.
+
+### 툴팁 표시 내용
+
+```
+┌──────────────────────────────────────────┐
+│ [아이콘]  스킬명                Lv 15/50 │
+├──────────────────────────────────────────┤
+│  데미지    1,234%   쿨타임  3.5s → 2.1s  │
+│  시전시간  0.5s                          │
+├──────────────────────────────────────────┤  ← can_enhance 시만
+│  강화   [없음] [공격+55%] [공격+38%+CDR] │
+├──────────────────────────────────────────┤  ← can_evolve 시만
+│  개화   [없음] [개화1] [개화2]            │
+└──────────────────────────────────────────┘
+```
+
+**쿨타임 표시:** `base_cooldown → CDR 적용 후 최종 쿨타임` 형태. 강화 type 2의 CDR +15% 포함.
+
+**데미지 표시:** `damage_per_level[current_level - 1] × enhancement_mult × bloom_damage_mult` 계산 결과. passive_mult는 툴팁에 표시하지 않음.
+
+### 구현 구조
+
+```
+SkillNode (SkillTree.jsx)
+  onMouseEnter → setTimeout 600ms → setTooltip({ skillId, x, y })
+  onMouseLeave → clearTimeout + setTooltip(null)
+  툴팁이 열린 동안 마우스가 툴팁 위에 있어도 닫히면 안 됨
+
+SkillTooltip.jsx (신규)
+  createPortal → document.body
+  props: skill, stats, onEnhancementChange, onEvolutionChange
+  포지셔닝: 노드 우측 우선, 화면 밖이면 좌측으로
+
+App.jsx 핸들러 (신규)
+  handleEnhancementChange(skillId, type) → setSkills(prev => ...)
+  handleEvolutionChange(skillId, type) → setSkills(prev => ...)
+```
+
+### manual.json 개화 이름 필드 (선택적 확장)
+
+툴팁에서 "개화1" / "개화2" 대신 의미있는 이름을 표시하려면 `evolutionOverrides`에 `name` 필드를 추가한다.
+
+```json
+"evolutionOverrides": {
+  "1": { "name": "패스트 뉴클리어", "castTime": 0.25, "damageMult": -50, "coolTime": 20 },
+  "2": { "name": "더 그레이티스트", "damageMult": 50, "coolTime": 60 }
+}
+```
+
+`merge_skills.js`에서 `name` 필드를 `bloom_option_1.name` / `bloom_option_2.name`으로 그대로 전달한다.
+C 코어는 이름을 사용하지 않으므로 JSON에 추가해도 무방하다.
+
+---
+
 ## 빌드 및 실행
 
 ```bash
@@ -616,6 +674,7 @@ echo '{...}' | ./core/simulator
 - [x] M7.5: 프론트엔드 — 딜량 분석 패널 (차트 + 스킬 통계 + 아이콘 타임라인)
 - [ ] M8: 통합 테스트
 - [ ] M9: 캐릭터 검색 — Neople API로 캐릭터 조회 후 직업/스킬 레벨 자동 로드
+- [ ] M10: 스킬 툴팁 — hover 600ms 후 포털 툴팁 표시 + 개화/강화 수동 선택 UI
 
 ---
 

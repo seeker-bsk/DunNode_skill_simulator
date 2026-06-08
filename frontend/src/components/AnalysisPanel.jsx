@@ -59,48 +59,49 @@ function SkillIcon({ skillName, selectedJob, size, imgClass, fallbackClass }) {
   );
 }
 
-/* ── 스킬 통계 테이블 ─────────────────────────────────────────── */
-function DamageTable({ skillStats, simDuration, selectedJob }) {
+/* ── 스킬 통계 테이블 (CSS grid + 바 애니메이션) ────────────── */
+function DamageTable({ skillStats, simDuration, selectedJob, resultKey }) {
   return (
     <div className="dmg-table-wrap">
-      <table className="dmg-table">
-        <thead>
-          <tr>
-            <th>스킬</th>
-            <th className="num-col">총 데미지</th>
-            <th className="num-col">초당 데미지</th>
-            <th className="num-col">횟수</th>
-            <th className="num-col">기여도</th>
-          </tr>
-        </thead>
-        <tbody>
-          {skillStats.map(s => (
-            <tr
-              key={s.skill_id}
-              style={{
-                background: `linear-gradient(to right, rgba(56,139,253,0.10) ${s.contribution_pct}%, transparent ${s.contribution_pct}%)`
-              }}
-            >
-              <td className="name-col">
-                <div className="tbl-name-cell">
-                  <SkillIcon
-                    skillName={s.skill_name}
-                    selectedJob={selectedJob}
-                    size={30}
-                    imgClass="tbl-skill-icon"
-                    fallbackClass="tbl-icon-fallback"
-                  />
-                  <span>{s.skill_name}</span>
-                </div>
-              </td>
-              <td className="num-col">{formatCoef(s.total_damage)}</td>
-              <td className="num-col">{formatCoef(s.total_damage / simDuration)}</td>
-              <td className="num-col">{s.use_count}</td>
-              <td className="num-col pct-col">{s.contribution_pct.toFixed(1)}%</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      <div className="dmg-grid">
+        <div className="dmg-th-row">
+          <div className="dmg-th">스킬</div>
+          <div className="dmg-th num-th">총 데미지</div>
+          <div className="dmg-th num-th">초당 데미지</div>
+          <div className="dmg-th num-th">횟수</div>
+          <div className="dmg-th num-th pct-th">기여도</div>
+        </div>
+        {skillStats.map((s, idx) => (
+          <div
+            key={s.skill_id}
+            className="dmg-td-row"
+            style={{ '--bar-pct': `${s.contribution_pct}%` }}
+          >
+            {/* 바 애니메이션 요소: resultKey 변경 시 remount → 애니메이션 재생 */}
+            <div
+              className="row-bar"
+              key={`bar-${s.skill_id}-${resultKey}`}
+              style={{ animationDelay: `${idx * 40}ms` }}
+            />
+            <div className="dmg-cell name-col">
+              <div className="tbl-name-cell">
+                <SkillIcon
+                  skillName={s.skill_name}
+                  selectedJob={selectedJob}
+                  size={30}
+                  imgClass="tbl-skill-icon"
+                  fallbackClass="tbl-icon-fallback"
+                />
+                <span>{s.skill_name}</span>
+              </div>
+            </div>
+            <div className="dmg-cell num-col">{formatCoef(s.total_damage)}</div>
+            <div className="dmg-cell num-col">{formatCoef(s.total_damage / simDuration)}</div>
+            <div className="dmg-cell num-col">{s.use_count}</div>
+            <div className="dmg-cell num-col pct-col">{s.contribution_pct.toFixed(1)}%</div>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
@@ -108,7 +109,7 @@ function DamageTable({ skillStats, simDuration, selectedJob }) {
 /* ── 데미지 차트 ──────────────────────────────────────────────── */
 const VW = 860;
 const VH = 210;
-const PAD = { top: 14, right: 20, bottom: 34, left: 60 };
+const PAD = { top: 14, right: 20, bottom: 34, left: 90 };
 const IW = VW - PAD.left - PAD.right;
 const IH = VH - PAD.top - PAD.bottom;
 
@@ -211,14 +212,21 @@ function DamageChart({ timeline, simDuration, totalDamage }) {
           const bh = (PAD.top + IH) - by;
           return (
             <rect
-              key={i} x={bx} y={by} width={barW} height={Math.max(bh, 0)}
+              key={i}
+              className="chart-dps-bar"
+              x={bx} y={by} width={barW} height={Math.max(bh, 0)}
               fill="var(--warning)" opacity="0.22"
+              style={{ animationDelay: `${i * 8}ms` }}
             />
           );
         })}
 
-        <path d={dpsD} fill="none" stroke="var(--warning)" strokeWidth="1.6" opacity="0.85" />
-        <path d={cumD} fill="none" stroke="var(--accent)" strokeWidth="2.2" />
+        <path className="chart-dps-line"
+          d={dpsD} fill="none" stroke="var(--warning)" strokeWidth="1.6" opacity="0.85"
+          pathLength={1} />
+        <path className="chart-cum-line"
+          d={cumD} fill="none" stroke="var(--accent)" strokeWidth="2.2"
+          pathLength={1} />
 
         <line
           x1={PAD.left} y1={PAD.top}
@@ -238,8 +246,9 @@ function DamageChart({ timeline, simDuration, totalDamage }) {
 /* ── 스킬 사용 순서 (아이콘 타임라인) ───────────────────────── */
 const SEQ_ICON = 36;    /* 아이콘 한 변 (px) */
 const SEQ_RULER_H = 24; /* 루즐 높이 (px) — CSS와 동일해야 함 */
-const SEQ_ROW_GAP = 5;  /* 행 간 간격 (px) */
-const SEQ_MIN_PX_SEC = 20; /* 초당 최소 픽셀 */
+const SEQ_ROW_GAP = 6;  /* 행 간 간격 (px) */
+const SEQ_NUM_ROWS = 3; /* 스태거 행 수 */
+const SEQ_MIN_PX_SEC = 40; /* 초당 최소 픽셀 */
 
 function SkillSequence({ timeline, simDuration, selectedJob }) {
   const events = useMemo(
@@ -249,22 +258,29 @@ function SkillSequence({ timeline, simDuration, selectedJob }) {
 
   const trackW   = Math.max(860, simDuration * SEQ_MIN_PX_SEC);
   const pxPerSec = trackW / simDuration;
-  const totalH   = SEQ_RULER_H + SEQ_ICON * 2 + SEQ_ROW_GAP + 6;
+  const totalH   = SEQ_RULER_H + SEQ_ICON * SEQ_NUM_ROWS + SEQ_ROW_GAP * (SEQ_NUM_ROWS - 1) + 6;
 
-  /* 2-행 그리디 스태거: 이전 이벤트와 아이콘 폭보다 가까우면 반대 행 */
+  /* 3-행 그리디 스태거: 겹침 없는 첫 행 선택, 모두 차면 가장 오래된 행 */
   const minGapSec = (SEQ_ICON + 2) / pxPerSec;
   const rowOf = useMemo(() => {
     const rows = [];
-    const lastT = [-Infinity, -Infinity];
+    const lastT = new Array(SEQ_NUM_ROWS).fill(-Infinity);
     for (const ev of events) {
-      const r = (ev.time - lastT[0] >= minGapSec) ? 0 : 1;
-      rows.push(r);
-      lastT[r] = ev.time;
+      let chosen = -1;
+      for (let r = 0; r < SEQ_NUM_ROWS; r++) {
+        if (ev.time - lastT[r] >= minGapSec) { chosen = r; break; }
+      }
+      if (chosen === -1) {
+        chosen = lastT.indexOf(Math.min(...lastT));
+      }
+      rows.push(chosen);
+      lastT[chosen] = ev.time;
     }
     return rows;
   }, [events, minGapSec]);
 
-  const toX = t   => (t / simDuration) * trackW;
+  const SEQ_PAD_H = Math.ceil(SEQ_ICON / 2) + 4; /* 양쪽 수평 여백 — 0s 아이콘 좌측 클리핑 방지 */
+  const toX = t   => SEQ_PAD_H + (t / simDuration) * (trackW - SEQ_PAD_H * 2);
   const toY = row => SEQ_RULER_H + row * (SEQ_ICON + SEQ_ROW_GAP);
 
   /* 루즐 틱 생성 */
@@ -376,11 +392,13 @@ export default function AnalysisPanel({ result, simDuration, selectedJob }) {
             skillStats={sorted}
             simDuration={simDuration}
             selectedJob={selectedJob}
+            resultKey={result._key}
           />
         )}
         {innerTab === 'timeline' && (
           <div className="timeline-view">
             <DamageChart
+              key={result._key}
               timeline={result.timeline ?? []}
               simDuration={simDuration}
               totalDamage={result.total_damage * 100}

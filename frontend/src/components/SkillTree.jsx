@@ -1,4 +1,5 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useRef, useCallback } from 'react';
+import SkillTooltip from './SkillTooltip';
 
 /* ── 메인 그리드 레이아웃 상수 ─────────────────────────────── */
 const NODE_W   = 104;
@@ -153,7 +154,7 @@ function computeChainLayout(skills) {
 }
 
 /* ── SkillNode ─────────────────────────────────────────────── */
-function SkillNode({ skill, job, effLv, charLv, prereqMet = true, onLevelChange, onLockToggle }) {
+function SkillNode({ skill, job, effLv, charLv, prereqMet = true, onLevelChange, onLockToggle, onTooltipOpen, onTooltipClose }) {
   const iconUrls = useMemo(() => buildIconUrls(skill, job), [skill.skill_id, job]);
   const [iconIdx, setIconIdx] = useState(0);
   useEffect(() => { setIconIdx(0); }, [skill.skill_id]);
@@ -170,6 +171,7 @@ function SkillNode({ skill, job, effLv, charLv, prereqMet = true, onLevelChange,
   const cantLearn    = !isAuto && maxLv === 0;
   const cantIncrease = cantLearn || (!isAuto && !prereqMet);
   const learned      = lv > 0;
+  const showSp       = !isAuto && (skill.sp_cost_per_level > 0);
 
   function change(toLevel) {
     if (isAuto) return;
@@ -198,12 +200,13 @@ function SkillNode({ skill, job, effLv, charLv, prereqMet = true, onLevelChange,
     locked                ? 'locked'           : '',
   ].filter(Boolean).join(' ');
 
-  const tooltip = isAuto
-    ? `${skill.name}\nLv ${lv} (자동)`
-    : `${skill.name}\nLv ${lv} / ${maxLv}\n클릭: +1  우클릭: -1\nShift+클릭: 최대  Shift+우클릭: 최소`;
-
   return (
-    <div className={cls} style={{ width: NODE_W }} title={tooltip}>
+    <div
+      className={cls}
+      style={{ width: NODE_W }}
+      onMouseEnter={e => onTooltipOpen?.(skill.skill_id, { x: e.clientX, y: e.clientY })}
+      onMouseLeave={() => onTooltipClose?.()}
+    >
       <div
         className="skill-icon-wrap"
         onClick={!isAuto ? handleClick : undefined}
@@ -225,6 +228,8 @@ function SkillNode({ skill, job, effLv, charLv, prereqMet = true, onLevelChange,
       </div>
 
       <div className="skill-name">{skill.name}</div>
+
+      {showSp && <div className="skill-sp-cost">{skill.sp_cost_per_level} SP/Lv</div>}
 
       {isAuto ? (
         <div className="skill-auto-label">자동</div>
@@ -330,9 +335,29 @@ function ChainEdges({ chains, chainPos, idToSkill }) {
 }
 
 /* ── SkillTree (메인 컴포넌트) ──────────────────────────────── */
-export default function SkillTree({ skills, selectedJob, stats, onSkillLevelChange, onLockToggle }) {
+export default function SkillTree({ skills, selectedJob, stats, onSkillLevelChange, onLockToggle, onEnhancementChange, onEvolutionChange }) {
   const effLv  = getEffLv(stats);
   const charLv = stats.char_level;
+
+  /* ── 툴팁 상태 + 타이머 ── */
+  const [tooltip, setTooltip]   = useState(null); /* { skill, rect } */
+  const showTimer = useRef(null);
+  const hideTimer = useRef(null);
+
+  const openTooltip = useCallback((skillId, rect) => {
+    clearTimeout(hideTimer.current);
+    clearTimeout(showTimer.current);
+    showTimer.current = setTimeout(() => setTooltip({ skillId, rect }), 600);
+  }, []);
+
+  const startHide = useCallback(() => {
+    clearTimeout(showTimer.current);
+    hideTimer.current = setTimeout(() => setTooltip(null), 150);
+  }, []);
+
+  const cancelHide = useCallback(() => {
+    clearTimeout(hideTimer.current);
+  }, []);
 
   const idToSkill = useMemo(() => {
     const m = new Map();
@@ -364,6 +389,7 @@ export default function SkillTree({ skills, selectedJob, stats, onSkillLevelChan
   );
 
   return (
+    <>
     <div className="skill-tree-panels">
 
       {/* ── 메인 그리드 ─────────────────────────────────────── */}
@@ -390,6 +416,7 @@ export default function SkillTree({ skills, selectedJob, stats, onSkillLevelChan
                 skill={s} job={selectedJob} effLv={effLv} charLv={charLv}
                 prereqMet={true}
                 onLevelChange={onSkillLevelChange} onLockToggle={onLockToggle}
+                onTooltipOpen={openTooltip} onTooltipClose={startHide}
               />
             </div>
           );
@@ -427,6 +454,7 @@ export default function SkillTree({ skills, selectedJob, stats, onSkillLevelChan
                     skill={s} job={selectedJob} effLv={effLv} charLv={charLv}
                     prereqMet={prereqMet}
                     onLevelChange={onSkillLevelChange} onLockToggle={onLockToggle}
+                    onTooltipOpen={openTooltip} onTooltipClose={startHide}
                   />
                 </div>
               );
@@ -436,5 +464,23 @@ export default function SkillTree({ skills, selectedJob, stats, onSkillLevelChan
       )}
 
     </div>
+
+    {/* ── 스킬 툴팁 (포털) ── */}
+    {tooltip && (() => {
+      const tooltipSkill = idToSkill.get(tooltip.skillId);
+      if (!tooltipSkill) return null;
+      return (
+        <SkillTooltip
+          skill={tooltipSkill}
+          stats={stats}
+          rect={tooltip.rect}
+          onEnter={cancelHide}
+          onLeave={startHide}
+          onEnhancementChange={onEnhancementChange}
+          onEvolutionChange={onEvolutionChange}
+        />
+      );
+    })()}
+  </>
   );
 }

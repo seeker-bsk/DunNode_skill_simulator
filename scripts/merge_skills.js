@@ -113,14 +113,16 @@ function resolveEnhancement(base, manual) {
 /*
  * evolutionOverrides → bloom_option_1 / bloom_option_2 변환.
  * bloom_type은 항상 0 (유저/옵티마이저가 선택).
- * 값이 null인 항목은 0으로 저장 (0 = "해당 속성 미변경"을 의미).
+ * cast_time 센티널: -1 = 미변경, 0 이상 = 변경 후 절대값 (0 = 즉시시전).
+ * damage_mult 센티널: 0 = 미변경(×1.0), 양수 = 배율.
+ * cooldown 센티널: 0 = 미변경, 양수 = 변경 후 절대값(초).
  */
 function resolveEvolution(manual) {
   const noBloom = {
     can_evolve:    false,
     bloom_type:    0,
-    bloom_option_1: { cast_time: 0, damage_mult: 0, cooldown: 0 },
-    bloom_option_2: { cast_time: 0, damage_mult: 0, cooldown: 0 }
+    bloom_option_1: { cast_time: -1, damage_mult: 0, cooldown: 0 },
+    bloom_option_2: { cast_time: -1, damage_mult: 0, cooldown: 0 }
   };
 
   const ev = manual.evolutionOverrides;
@@ -132,9 +134,12 @@ function resolveEvolution(manual) {
      * null이면 0 저장 → C 코어에서 "변화 없음(×1.0)"으로 해석 */
     const dm = o.damageMult;
     const damage_mult = (dm != null) ? 1.0 + dm / 100.0 : 0;
+    /* castTime: 절대값(초). null이면 -1(미변경), 0이면 즉시시전 */
+    const cast_time = (o.castTime != null) ? o.castTime : -1;
     /* coolTime: 절대값(초) 입력. null이면 0 → 변화 없음 */
     return {
-      cast_time:   o.castTime ?? 0,
+      name:        o.name ?? null,  /* 툴팁 표시용 이름 (없으면 null) */
+      cast_time,
       damage_mult,
       cooldown:    o.coolTime ?? 0
     };
@@ -301,6 +306,9 @@ function main() {
 
       /* 개화: can_evolve / bloom_type(0=미선택) / 선택지 */
       ...evFields,
+
+      /* 스킬 설명 (툴팁 표시용) */
+      option_desc:           base.optionDesc ?? '',
 
       /* 선행 스킬 */
       pre_required_skill_id: base.preRequiredSkill?.[0]?.skillId ?? '',
