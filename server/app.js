@@ -248,25 +248,31 @@ app.get("/api/character/servers", async (_req, res) => {
   }
 });
 
-/* ── GET /api/character/search?name=<name> ───────────────────────
- * 전 서버 × 지원 직업 조합으로 병렬 검색, 최대 10건 반환 */
+/* ── GET /api/character/search?name=<name>&server=<serverId|all> ─
+ * server 지정 시 해당 서버만 검색, 미지정/'all' 시 전 서버 병렬 검색 */
 app.get("/api/character/search", async (req, res) => {
-  const { name } = req.query;
+  const { name, server } = req.query;
   if (!name) return res.status(400).json({ error: "missing_params" });
 
   try {
-    const [servers, supportedJobs] = await Promise.all([
+    const [allServers, supportedJobs] = await Promise.all([
       fetchServers(),
       Promise.resolve(getSupportedJobs()),
     ]);
 
     if (supportedJobs.length === 0) return res.json([]);
 
+    /* server 파라미터로 대상 서버 필터링 */
+    const targetServers =
+      server && server !== "all" && /^[a-z]+$/.test(server)
+        ? allServers.filter((s) => s.serverId === server)
+        : allServers;
+
     /* 서버 × 직업 모든 조합을 병렬 요청; 개별 실패는 빈 배열로 무시 */
-    const tasks = servers.flatMap((server) =>
+    const tasks = targetServers.flatMap((srv) =>
       supportedJobs.map((job) =>
         neopleGet(
-          `/servers/${server.serverId}/characters` +
+          `/servers/${srv.serverId}/characters` +
             `?characterName=${encodeURIComponent(name)}` +
             `&jobId=${job.jobId}&jobGrowId=${job.jobGrowId}&wordType=full`,
         )
@@ -275,8 +281,8 @@ app.get("/api/character/search", async (req, res) => {
               characterId: c.characterId,
               characterName: c.characterName,
               level: c.level,
-              serverId: server.serverId,
-              serverName: server.serverName,
+              serverId: srv.serverId,
+              serverName: srv.serverName,
               jobId: c.jobId,
               jobGrowId: c.jobGrowId,
               jobGrowName: c.jobGrowName ?? job.jobName,
@@ -353,6 +359,7 @@ app.get("/api/character/:serverId/:characterId", async (req, res) => {
       enhancements,
       cooldown_reduction,
       cooldown_recovery_speed,
+      fame: charData.fame ?? 0,
     });
   } catch (err) {
     res

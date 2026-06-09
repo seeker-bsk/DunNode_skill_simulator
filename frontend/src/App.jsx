@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { ThemeProvider } from './contexts/ThemeContext';
 import Header from './components/Header';
+import HomePage from './components/HomePage';
 import JobBanner from './components/JobBanner';
 import SkillTree from './components/SkillTree';
 import AnalysisPanel from './components/AnalysisPanel';
@@ -34,6 +35,7 @@ export default function App() {
   const [characterName,  setCharacterName]  = useState(null); /* 캐릭터 검색 경유 시 닉네임 */
   const [pendingLevels,       setPendingLevels]       = useState(null);  /* 검색 후 적용할 스킬 레벨/개화/강화 */
   const [pendingAutoSimulate, setPendingAutoSimulate] = useState(false); /* 검색 로드 후 자동 시뮬 1회 */
+  const [characterInfo,       setCharacterInfo]       = useState(null);  /* { serverId, characterId, serverName, fame } */
   const [skills,         setSkills]         = useState([]);
   const [stats,          setStats]          = useState(DEFAULT_STATS);
   const [simDuration,    setSimDuration]    = useState(43);
@@ -41,15 +43,42 @@ export default function App() {
   const [loading,        setLoading]        = useState(false);
   const [treeLoading,    setTreeLoading]    = useState(false);
   const [baselineResult, setBaselineResult] = useState(null);  /* 캐릭터 검색 후 첫 시뮬 결과 */
-  const [mainTab,        setMainTab]        = useState('tree'); /* 'tree' | 'bloom' | 'sim' */
+  const [homeTab,        setHomeTab]        = useState('search'); /* 'search' | 'job' */
+  const [mainTab,        setMainTab]        = useState('tree');  /* 'tree' | 'bloom' | 'sim' */
   const [skillViewMode,  setSkillViewMode]  = useState('tree');
   const [toast,          setToast]          = useState(null);
 
-  /* 직업 목록 로드 */
+  /* 직업 목록 로드 — 완료 후 sessionStorage에서 마지막 세션 복구 */
   useEffect(() => {
     fetch('/jobs')
       .then(r => r.json())
-      .then(data => setJobs(data.filter(j => j.hasData)))
+      .then(data => {
+        const filtered = data.filter(j => j.hasData);
+        setJobs(filtered);
+        try {
+          const saved = JSON.parse(sessionStorage.getItem('sim-session') || 'null');
+          if (saved?.dataKey) {
+            const job = filtered.find(j => j.dataKey === saved.dataKey);
+            if (job) {
+              /* 스킬 레벨 스냅샷 → pendingLevels로 주입 (트리 로드 후 적용됨) */
+              if (saved.skillSnapshot?.length) {
+                setPendingLevels({
+                  levels:       saved.skillSnapshot.map(s => ({ skillId: s.skill_id, level: s.current_level })),
+                  evolutions:   saved.skillSnapshot.filter(s => s.bloom_type > 0).map(s => ({ skillId: s.skill_id, type: s.bloom_type })),
+                  enhancements: saved.skillSnapshot.filter(s => s.enhancement_type > 0).map(s => ({ skillId: s.skill_id, type: s.enhancement_type })),
+                });
+              }
+              /* 캐릭터 스탯 복구 */
+              if (saved.statsOverride) {
+                setStats(prev => ({ ...prev, ...saved.statsOverride }));
+              }
+              setSelectedJob(job);
+              if (saved.characterName) setCharacterName(saved.characterName);
+              if (saved.characterInfo) setCharacterInfo(saved.characterInfo);
+            }
+          }
+        } catch {}
+      })
       .catch(() => {});
   }, []);
 
@@ -101,6 +130,32 @@ export default function App() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pendingAutoSimulate, skills.length, treeLoading]);
 
+  /* 스킬/스탯 변경 시 sessionStorage 스냅샷 저장 (debounced 500ms) */
+  useEffect(() => {
+    if (skills.length === 0 || !selectedJob) return;
+    const timer = setTimeout(() => {
+      try {
+        const snapshot = skills.map(s => ({
+          skill_id:         s.skill_id,
+          current_level:    s.current_level,
+          bloom_type:       s.bloom_type,
+          enhancement_type: s.enhancement_type,
+        }));
+        const statsOverride = {
+          cooldown_reduction:      stats.cooldown_reduction,
+          cooldown_recovery_speed: stats.cooldown_recovery_speed,
+        };
+        const current = JSON.parse(sessionStorage.getItem('sim-session') || '{}');
+        sessionStorage.setItem('sim-session', JSON.stringify({
+          ...current,
+          skillSnapshot: snapshot,
+          statsOverride,
+        }));
+      } catch {}
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [skills, stats, selectedJob]);
+
   /* ── 핸들러 ── */
   const handleSkillLevelChange = useCallback((skillId, newLevel) => {
     setSkills(prev => prev.map(s => s.skill_id === skillId ? { ...s, current_level: newLevel } : s));
@@ -132,20 +187,24 @@ export default function App() {
   /* 직업 직접 선택 */
   const handleJobChange = useCallback((job) => {
     setCharacterName(null);
+    setCharacterInfo(null);
     setPendingLevels(null);
     setPendingAutoSimulate(false);
     setBaselineResult(null);
     setSelectedJob(job);
+    try { sessionStorage.setItem('sim-session', JSON.stringify({ dataKey: job.dataKey })); } catch {}
   }, []);
 
   /* 캐릭터 검색으로 로드 */
   const handleCharacterLoad = useCallback(({
     job, characterName: name,
+    serverId, characterId, serverName, fame,
     skillLevels, evolutions, enhancements,
     cooldown_reduction, cooldown_recovery_speed,
   }) => {
     setPendingLevels({ levels: skillLevels ?? [], evolutions: evolutions ?? [], enhancements: enhancements ?? [] });
     setCharacterName(name);
+    setCharacterInfo({ serverId, characterId, serverName, fame: fame ?? 0 });
     setBaselineResult(null);
     /* 쿨타임 감소 / 회복 속도 자동 적용 */
     if (cooldown_reduction !== null || cooldown_recovery_speed !== null) {
@@ -157,6 +216,13 @@ export default function App() {
     }
     setPendingAutoSimulate(true);
     setSelectedJob(job);
+    try {
+      sessionStorage.setItem('sim-session', JSON.stringify({
+        dataKey:       job.dataKey,
+        characterName: name,
+        characterInfo: { serverId, characterId, serverName, fame: fame ?? 0 },
+      }));
+    } catch {}
     setToast({ msg: `${name}님의 스킬 트리를 불러왔습니다`, key: Date.now() });
   }, []);
 
@@ -164,11 +230,13 @@ export default function App() {
   const handleClear = useCallback(() => {
     setSelectedJob(null);
     setCharacterName(null);
+    setCharacterInfo(null);
     setPendingLevels(null);
     setPendingAutoSimulate(false);
     setBaselineResult(null);
     setSkills([]);
     setResult(null);
+    try { sessionStorage.removeItem('sim-session'); } catch {}
   }, []);
 
   /* 시뮬레이션 실행 */
@@ -251,17 +319,28 @@ export default function App() {
       <div className={`app${selectedJob ? '' : ' no-job'}`}>
 
         {/* ── 헤더 ── */}
-        <Header />
-
-        {/* ── 직업 배너 (선택 진입점 or 직업 정보) ── */}
-        <JobBanner
-          jobs={jobs}
-          selectedJob={selectedJob}
-          characterName={characterName}
-          onJobChange={handleJobChange}
-          onCharacterLoad={handleCharacterLoad}
-          onClear={handleClear}
+        <Header
+          showHomeTabs={!selectedJob}
+          homeTab={homeTab}
+          onHomeTabChange={setHomeTab}
+          onLogoClick={handleClear}
         />
+
+        {/* ── 홈 (직업 미선택) or compact 배너 (직업 선택 후) ── */}
+        {!selectedJob ? (
+          <HomePage
+            jobs={jobs}
+            tab={homeTab}
+            onJobChange={handleJobChange}
+            onCharacterLoad={handleCharacterLoad}
+          />
+        ) : (
+          <JobBanner
+            selectedJob={selectedJob}
+            characterName={characterName}
+            characterInfo={characterInfo}
+          />
+        )}
 
         {/* ── 전체 폭 탭 바 (배너 아래, 직업 선택 후) ── */}
         {selectedJob && (

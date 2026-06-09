@@ -7,8 +7,8 @@ export function DamageCard({ result, baselineResult, characterName }) {
   const hasDelta = !!characterName;
 
   let delta = null;
-  if (hasDelta && total !== null && baseline !== null) {
-    delta = (total - baseline) * 100;
+  if (hasDelta && total !== null && baseline !== null && baseline !== 0) {
+    delta = (total - baseline) / baseline * 100;
   }
 
   const formatted = total !== null
@@ -38,7 +38,7 @@ export function DamageCard({ result, baselineResult, characterName }) {
         {hasDelta && (
           <div className={`damage-delta${deltaClass}`}>
             {delta !== null
-              ? <><span className="delta-icon">{deltaIcon}</span><span>{delta >= 0 ? '+' : ''}{delta.toFixed(2)}p</span></>
+              ? <><span className="delta-icon">{deltaIcon}</span><span>{delta >= 0 ? '+' : ''}{delta.toFixed(2)}%</span></>
               : <span className="damage-empty">- -</span>
             }
           </div>
