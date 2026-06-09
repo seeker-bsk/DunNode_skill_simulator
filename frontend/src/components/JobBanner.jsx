@@ -1,16 +1,5 @@
 import { useState, useRef, useCallback } from 'react';
 
-const SERVERS = [
-  { id: 'cain',     name: '카인' },
-  { id: 'diregie',  name: '디레지에' },
-  { id: 'bakal',    name: '바칼' },
-  { id: 'hilder',   name: '힐더' },
-  { id: 'anton',    name: '안톤' },
-  { id: 'luke',     name: '루크' },
-  { id: 'sirocco',  name: '시로코' },
-  { id: 'casillas', name: '카시야스' },
-];
-
 /* 직업 아트 이미지: webp → png fallback */
 function JobArt({ dataKey }) {
   const [ext, setExt] = useState('webp');
@@ -49,7 +38,6 @@ function JobGrid({ jobs, onJobChange }) {
 
 /* ── 캐릭터 검색 폼 ── */
 function CharacterSearchForm({ jobs, onCharacterLoad }) {
-  const [server,  setServer]  = useState('cain');
   const [query,   setQuery]   = useState('');
   const [loading, setLoading] = useState(false);
   const [results, setResults] = useState(null); /* null=초기, []=없음, [...]=결과 */
@@ -64,7 +52,7 @@ function CharacterSearchForm({ jobs, onCharacterLoad }) {
     setResults(null);
     setMsg('');
     try {
-      const res  = await fetch(`/api/character/search?name=${encodeURIComponent(name)}&server=${server}`);
+      const res  = await fetch(`/api/character/search?name=${encodeURIComponent(name)}`);
       const data = await res.json();
       if (!res.ok) throw new Error(data?.error ?? '검색 실패');
       setResults(data.slice(0, 10));
@@ -76,7 +64,7 @@ function CharacterSearchForm({ jobs, onCharacterLoad }) {
     } finally {
       setLoading(false);
     }
-  }, [server, query]);
+  }, [query]);
 
   const handleSelect = useCallback(async (item) => {
     setLoading(true);
@@ -101,8 +89,12 @@ function CharacterSearchForm({ jobs, onCharacterLoad }) {
 
       onCharacterLoad({
         job,
-        characterName: item.characterName,
-        skillLevels:   data.skillLevels ?? [],
+        characterName:           item.characterName,
+        skillLevels:             data.skillLevels            ?? [],
+        evolutions:              data.evolutions             ?? [],
+        enhancements:            data.enhancements           ?? [],
+        cooldown_reduction:      data.cooldown_reduction     ?? null,
+        cooldown_recovery_speed: data.cooldown_recovery_speed ?? null,
       });
     } catch (e) {
       setMsg(e.message || '오류가 발생했습니다.');
@@ -115,13 +107,10 @@ function CharacterSearchForm({ jobs, onCharacterLoad }) {
   return (
     <div>
       <div className="banner-search-form">
-        <select value={server} onChange={e => setServer(e.target.value)}>
-          {SERVERS.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
-        </select>
         <input
           ref={inputRef}
           type="text"
-          placeholder="캐릭터 닉네임"
+          placeholder="캐릭터 닉네임 (전 서버 검색)"
           value={query}
           onChange={e => setQuery(e.target.value)}
           onKeyDown={e => e.key === 'Enter' && doSearch()}

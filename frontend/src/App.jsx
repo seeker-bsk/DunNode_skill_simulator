@@ -22,16 +22,18 @@ function lockedSpCost(s) {
   if (lm === 'auto_char' || lm === 'auto_every5') return 0;
   const lv = s.current_level ?? 0;
   if (lv === 0) return 0;
-  const cost = s.sp_cost_per_level || 1;
-  if (lm === 'auto_lv1_sp') return cost * Math.max(0, lv - 1);
-  return cost * lv;
+  const perLv = s.sp_cost_per_level || 1;
+  if (lm === 'auto_lv1_sp') return perLv * Math.max(0, lv - 1);
+  const lv1 = s.sp_cost_lv1 > 0 ? s.sp_cost_lv1 : perLv;
+  return lv1 + (lv - 1) * perLv;
 }
 
 export default function App() {
   const [jobs,           setJobs]           = useState([]);
   const [selectedJob,    setSelectedJob]    = useState(null);
   const [characterName,  setCharacterName]  = useState(null); /* 캐릭터 검색 경유 시 닉네임 */
-  const [pendingLevels,  setPendingLevels]  = useState(null); /* 검색 후 적용할 스킬 레벨 */
+  const [pendingLevels,       setPendingLevels]       = useState(null);  /* 검색 후 적용할 스킬 레벨/개화/강화 */
+  const [pendingAutoSimulate, setPendingAutoSimulate] = useState(false); /* 검색 로드 후 자동 시뮬 1회 */
   const [skills,         setSkills]         = useState([]);
   const [stats,          setStats]          = useState(DEFAULT_STATS);
   const [simDuration,    setSimDuration]    = useState(43);
@@ -65,12 +67,22 @@ export default function App() {
             ? 1 : s.current_level,
           locked: false,
         }));
-        /* 캐릭터 검색 경유 시 스킬 레벨 일괄 적용 */
+        /* 캐릭터 검색 경유 시 스킬 레벨/개화/강화 일괄 적용 */
         if (pendingLevels) {
-          const lvMap = new Map(pendingLevels.map(sl => [sl.skillId, sl.level]));
+          const { levels, evolutions, enhancements } = pendingLevels;
+          const lvMap   = new Map(levels.map(sl => [sl.skillId, sl.level]));
+          const evolMap = new Map(evolutions.map(e  => [e.skillId,  e.type]));
+          const enhMap  = new Map(enhancements.map(e => [e.skillId, e.type]));
           mapped = mapped.map(s => {
-            const lv = lvMap.get(s.skill_id);
-            return lv !== undefined ? { ...s, current_level: lv } : s;
+            const lv  = lvMap.get(s.skill_id);
+            const ev  = evolMap.get(s.skill_id);
+            const enh = enhMap.get(s.skill_id);
+            return {
+              ...s,
+              current_level:    lv  !== undefined ? lv  : s.current_level,
+              bloom_type:       ev  !== undefined ? ev  : s.bloom_type,
+              enhancement_type: enh !== undefined ? enh : s.enhancement_type,
+            };
           });
           setPendingLevels(null);
         }
@@ -79,6 +91,15 @@ export default function App() {
       .catch(() => setSkills([]))
       .finally(() => setTreeLoading(false));
   }, [selectedJob]);
+
+  /* 캐릭터 로드 후 자동 시뮬레이션 1회 — handleSimulate는 아래서 정의되지만 동일 렌더 스코프 내에서 유효 */
+  useEffect(() => {
+    if (!pendingAutoSimulate) return;
+    if (skills.length === 0 || treeLoading) return;
+    setPendingAutoSimulate(false);
+    handleSimulate(false);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pendingAutoSimulate, skills.length, treeLoading]);
 
   /* ── 핸들러 ── */
   const handleSkillLevelChange = useCallback((skillId, newLevel) => {
@@ -112,15 +133,29 @@ export default function App() {
   const handleJobChange = useCallback((job) => {
     setCharacterName(null);
     setPendingLevels(null);
+    setPendingAutoSimulate(false);
     setBaselineResult(null);
     setSelectedJob(job);
   }, []);
 
   /* 캐릭터 검색으로 로드 */
-  const handleCharacterLoad = useCallback(({ job, characterName: name, skillLevels }) => {
-    setPendingLevels(skillLevels);
+  const handleCharacterLoad = useCallback(({
+    job, characterName: name,
+    skillLevels, evolutions, enhancements,
+    cooldown_reduction, cooldown_recovery_speed,
+  }) => {
+    setPendingLevels({ levels: skillLevels ?? [], evolutions: evolutions ?? [], enhancements: enhancements ?? [] });
     setCharacterName(name);
     setBaselineResult(null);
+    /* 쿨타임 감소 / 회복 속도 자동 적용 */
+    if (cooldown_reduction !== null || cooldown_recovery_speed !== null) {
+      setStats(prev => ({
+        ...prev,
+        ...(cooldown_reduction      !== null ? { cooldown_reduction:      Math.min(0.70, Math.max(0, cooldown_reduction      / 100)) } : {}),
+        ...(cooldown_recovery_speed !== null ? { cooldown_recovery_speed: Math.min(200,  Math.max(0, cooldown_recovery_speed))        } : {}),
+      }));
+    }
+    setPendingAutoSimulate(true);
     setSelectedJob(job);
     setToast({ msg: `${name}님의 스킬 트리를 불러왔습니다`, key: Date.now() });
   }, []);
@@ -130,6 +165,7 @@ export default function App() {
     setSelectedJob(null);
     setCharacterName(null);
     setPendingLevels(null);
+    setPendingAutoSimulate(false);
     setBaselineResult(null);
     setSkills([]);
     setResult(null);

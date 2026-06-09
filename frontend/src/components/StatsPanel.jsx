@@ -48,16 +48,17 @@ export function DamageCard({ result, baselineResult, characterName }) {
   );
 }
 
+function calcSkillSp(s, lv) {
+  const lm = s.level_mode;
+  if (lm === 'auto_char' || lm === 'auto_every5' || lv === 0) return 0;
+  const perLv = s.sp_cost_per_level || 1;
+  if (lm === 'auto_lv1_sp') return perLv * Math.max(0, lv - 1);
+  const lv1 = s.sp_cost_lv1 > 0 ? s.sp_cost_lv1 : perLv;
+  return lv1 + (lv - 1) * perLv;
+}
+
 function calcSpUsed(skills) {
-  return skills.reduce((acc, s) => {
-    const lm = s.level_mode;
-    if (lm === 'auto_char' || lm === 'auto_every5') return acc;
-    const lv   = s.current_level ?? 0;
-    if (lv === 0) return acc;
-    const cost = s.sp_cost_per_level || 1;
-    if (lm === 'auto_lv1_sp') return acc + cost * Math.max(0, lv - 1);
-    return acc + cost * lv;
-  }, 0);
+  return skills.reduce((acc, s) => acc + calcSkillSp(s, s.current_level ?? 0), 0);
 }
 
 /* ── SP 현황 카드 ── */
