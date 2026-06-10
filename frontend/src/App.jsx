@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { ThemeProvider } from './contexts/ThemeContext';
 import Header from './components/Header';
+import Footer from './components/Footer';
 import HomePage from './components/HomePage';
 import JobBanner from './components/JobBanner';
 import SkillTree from './components/SkillTree';
@@ -467,6 +468,8 @@ export default function App() {
             {toast.msg}
           </div>
         )}
+
+        <Footer />
 
       </div>
     </ThemeProvider>

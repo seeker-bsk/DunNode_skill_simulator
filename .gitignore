@@ -5,6 +5,7 @@
 node_modules/
 
 # C 빌드 산출물
+core/nul
 core/*.o
 core/*.exe
 core/simulator
